@@ -26,16 +26,16 @@ Este repositorio contiene el código fuente y las dependencias necesarias para e
    ```
    El script detecta automáticamente tu sistema operativo y activa el entorno virtual correctamente en Windows, Linux o macOS.
 
-   > [!NOTE]
-   > - Si el script no se ejecuta por permisos (en Linux/macOS), asígnale permisos de ejecución:
-   >   ```bash
-   >   chmod +x init_venv.sh
-   >   ```
-   > - En Windows, si tienes problemas, puedes activar el entorno manualmente y luego instalar las dependencias:
-   >   ```powershell
-   >   .\venv\Scripts\Activate.ps1
-   >   pip install -r requirements.txt
-   >   ```
+> [!NOTE]
+> - Si el script no se ejecuta por permisos (en Linux/macOS), asígnale permisos de ejecución:
+>   ```bash
+>   chmod +x init_venv.sh
+>   ```
+> - En Windows, si tienes problemas, puedes activar el entorno manualmente y luego instalar las dependencias:
+>   ```powershell
+>   .\venv\Scripts\Activate.ps1
+>   pip install -r requirements.txt
+>   ```
 
 ## Ejecución del proyecto
 
