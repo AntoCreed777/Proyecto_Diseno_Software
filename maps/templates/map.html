@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maps test</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <div id="map" style="height: 500px;"></div>     <!-- Leaflet.js busca el identificador "map" para inicializar el mapa -->
+    <script src="../static/js/polyline.js"></script>
+    <script src="../static/js/map.js"></script>
+    <script>
+        obtenerCoordenadas("{{ direccion_lenguaje_natural }}").then((coord) => {
+            calcularRutaMasCortaEntreNodos(-36.801429, -73.056003, coord.lat, coord.lon);
+        });
+    </script>
+</body>
+</html>

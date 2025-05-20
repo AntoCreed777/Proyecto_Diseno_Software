@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'maps', # App de mapas usando OpenStreetMap
 ]
 
 MIDDLEWARE = [
