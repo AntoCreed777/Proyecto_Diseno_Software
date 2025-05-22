@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'registro.css' %}">
+    <title>Registrarse</title>
+</head>
+<body class="imagen_fondo">
+
+    <div class="registrarse" id="registrarse">
+        <h1>Registrarse</h1>
+        <form method="post">
+            <div>
+                <hr class="linea_nombre" id="linea_nombre">
+                <input type="text" id="nombre" class="input_nombre" placeholder="Nombre" required>
+            </div>
+            <div>
+                <hr class="linea_RUT" id="linea_RUT">
+                <input type="text" id="RUT" class="input_RUT" placeholder="RUT">
+            </div>
+            <div>
+                <hr class="linea_correo" id="linea_correo">
+                <input type="text" id="input_correo" class="input_correo" placeholder="Correo">
+            </div>
+            <div>
+                <hr class="linea_contraseña" id="linea_contraseña">
+                <input type="password" id="contraseña" class="input_contraseña" placeholder="Contraseña" required>
+            </div>
+            <div>
+                <input type="submit" value="Registrarse" class="registrarse_pag">
+            </div>
+        </form>
+    </div>
+</body>
+</html>

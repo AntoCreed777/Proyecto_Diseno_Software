@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Iniciar sesión</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body class="imagen_fondo">
+    <div class="inicio_sesion" id="inicio_sesion">
+        <h1>Inicio de sesión</h1>
+        <form method="post">
+            <div>
+                <hr class="linea_Correo" id="linea_Correo">
+                <input type="text" id="Correo" class="input_Correo" placeholder="Correo" required>
+            </div>
+            <div>
+                <hr class="linea_contraseña" id="linea_contraseña">
+                <input type="password" id="contraseña" class="input_contraseña" placeholder="Contraseña" required>
+            </div>
+            <div>
+                <input type="submit" value="Ingresar" class="ingresar">
+            </div>
+        </form>
+    </div>
+</body>
+</html>

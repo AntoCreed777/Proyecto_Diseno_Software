@@ -20,4 +20,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('maps/', include('maps.urls')),  # Incluye las URLs de la app de mapas, se concatenan con el prefijo 'maps/'
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
