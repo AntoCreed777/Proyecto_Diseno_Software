@@ -11,7 +11,7 @@ footer {
 }
 
 .imagen_fondo{
-    background-image: url("../css/fondo_citas.jpg");
+    background-image: url("img/fondo.jpg");
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
@@ -45,8 +45,7 @@ body {
 .centrar{
     text-align: center;
 }
-
-.input_nombre{
+.input_usuario{
     position: absolute;
     left: 100px;
     top: 90px;
@@ -57,15 +56,14 @@ body {
     font-size: 14px;
 }
 
-.linea_nombre{
+.linea_usuario{
     position: absolute;
     top: 100px;
     left: 100px;
     border-top: 1px solid black;
     width: 300px;
 }
-
-.input_RUT{
+.input_contraseña{
     position: absolute;
     top: 140px;
     left:100px;
@@ -76,7 +74,7 @@ body {
     font-size: 14px;
 }
 
-.linea_RUT{
+.linea_contraseña{
     position: absolute;
     top: 150px;
     left: 100px;
@@ -84,7 +82,7 @@ body {
     width: 300px;
 }
 
-.input_correo{
+.input_contraseña2{
     position: absolute;
     left: 100px;
     top: 190px;
@@ -94,32 +92,13 @@ body {
     outline: none;
     font-size: 14px;
 }
-  .linea_correo{
+  .linea_contraseña2{
     position: absolute;
     top: 200px;
     left: 100px;
     border-top: 1px solid black;
     width: 300px;
 }
-  
-.input_contraseña{
-    position: absolute;
-    left: 100px;
-    top: 240px;
-    width: 300px;
-    border: none;
-    background: none;
-    outline: none;
-    font-size: 14px;
-}
-  .linea_contraseña{
-    position: absolute;
-    top: 250px;
-    left: 100px;
-    border-top: 1px solid black;
-    width: 300px;
-}
-  
 .registrarse_pag{
     position: absolute;
     top:280px;

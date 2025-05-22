@@ -10,6 +10,7 @@
     <div class="inicio_sesion" id="inicio_sesion">
         <h1>Inicio de sesión</h1>
         <form method="post">
+            {% csrf_token %}
             <div>
                 <hr class="linea_Correo" id="linea_Correo">
                 <input type="text" id="Correo" class="input_Correo" placeholder="Correo" required>
