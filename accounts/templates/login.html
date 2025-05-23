@@ -12,12 +12,12 @@
         <form method="post">
             {% csrf_token %}
             <div>
-                <hr class="linea_Correo" id="linea_Correo">
-                <input type="text" id="Correo" class="input_Correo" placeholder="Correo" required>
+                <hr class="linea_Usuario" id="linea_Usuario">
+                <input type="text" name="usuario" class="input_Usuario" placeholder="Usuario" required>
             </div>
             <div>
                 <hr class="linea_contraseña" id="linea_contraseña">
-                <input type="password" id="contraseña" class="input_contraseña" placeholder="Contraseña" required>
+                <input type="password" name="contraseña" class="input_contraseña" placeholder="Contraseña" required>
             </div>
             <div>
                 <input type="submit" value="Ingresar" class="ingresar">

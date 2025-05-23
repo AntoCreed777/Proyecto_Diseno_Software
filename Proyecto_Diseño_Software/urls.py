@@ -21,6 +21,6 @@ from accounts import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('maps/', include('maps.urls')),  # Incluye las URLs de la app de mapas, se concatenan con el prefijo 'maps/'
-    path('accounts/login/',views.Temporal),
+    path('accounts/login/',views.login_view),
     path('accounts/register/',views.registration), 
 ]
