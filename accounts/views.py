@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate,login
 from django.contrib import messages
+
 # Create your views here.
 def login_view(request):
      if request.method == 'POST':

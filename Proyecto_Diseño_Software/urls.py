@@ -16,11 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from accounts import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('maps/', include('maps.urls')),  # Incluye las URLs de la app de mapas, se concatenan con el prefijo 'maps/'
-    path('accounts/login/',views.login_view),
-    path('accounts/register/',views.registration), 
+    path('accounts/', include('accounts.urls')),  # Incluye las URLs de la app de cuentas, se concatenan con el prefijo 'accounts/'
 ]
