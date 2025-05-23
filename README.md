@@ -11,7 +11,7 @@ Este repositorio contiene el código fuente y las dependencias necesarias para e
 
 1. **Clona este repositorio:**
    ```bash
-   git clone <url-del-repo>
+   git clone https://github.com/AntoCreed777/Proyecto_Diseno_Software
    cd Proyecto_Diseno_Software
    ```
 
@@ -36,6 +36,17 @@ Este repositorio contiene el código fuente y las dependencias necesarias para e
 >   .\venv\Scripts\Activate.ps1
 >   pip install -r requirements.txt
 >   ```
+
+## Comandos previos
+
+Antes de iniciar el servidor, es necesario aplicar las migraciones de la base de datos para asegurar que la estructura esté actualizada. 
+
+Ejecuta el siguiente comando:
+
+```bash
+python3 manage.py migrate
+```
+Esto preparará la base de datos para el correcto funcionamiento del proyecto.
 
 ## Ejecución del proyecto
 
