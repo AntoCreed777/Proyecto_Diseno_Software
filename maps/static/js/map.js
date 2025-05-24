@@ -41,6 +41,38 @@ async function obtenerCoordenadas(direccion) {
     }
 }
 
+function generarColorAleatorio() {
+    const randomColor = Math.floor(Math.random() * 16777215).toString(16);
+    return `#${randomColor}`;
+}
+
+function dibujarPolilineaConFlechas(coordinates, color = 'blue', mensaje = '') {
+    // Crear la polilínea base
+    const polyline = L.polyline(coordinates, { color, weight: 4 }).addTo(map);
+    
+    // Añadir un popup con el mensaje, si se proporciona
+    if (mensaje !== '') {
+        polyline.bindPopup(mensaje);
+    }
+
+    const decorator = L.polylineDecorator(polyline, {
+        patterns: [
+            {
+                offset: '5%',
+                repeat: '10%',
+                symbol: L.Symbol.arrowHead({
+                    pixelSize: 15,
+                    polygon: false,
+                    pathOptions: { stroke: true, color: color },
+                })
+            }
+        ]
+    });
+
+    // Añadir la decoración a la polilínea
+    decorator.addTo(map).bindPopup(mensaje);
+}
+
 /**
  * Función para encontrar el nombre de la calle a partir de coordenadas
  *
@@ -168,7 +200,7 @@ function nodoMasCercano(lat, lon, nodos) {
  * @param {number} lon - Longitud
  * @param {number} radius - Radio de búsqueda en metros
  */
-async function mostrarNodoCercanoConMarcador(lat, lon, radius = 100) {
+async function mostrarNodoCercanoConMarcador(lat, lon, radius = 50) {
     const query = `
         [out:json];
         way(around:${radius},${lat},${lon})["highway"];
@@ -226,48 +258,71 @@ async function mostrarNodoCercanoConMarcador(lat, lon, radius = 100) {
 }
 
 /**
- * Función para calcular la ruta más corta entre dos nodos, y agregar marcadores
+ * Calcula la ruta entre nodos y obtiene los pasos con nombres de calles para cada tramo.
  *
- * @param {number} lat1 - Latitud del primer nodo
- * @param {number} lon1 - Longitud del primer nodo
- * @param {number} lat2 - Latitud del segundo nodo
- * @param {number} lon2 - Longitud del segundo nodo
+ * @param {Array} nodos - Lista de nodos [{lat, lon}, ...]
+ * @param {boolean} roundtrip - Indica si debe regresar al punto inicial (opcional, por defecto true)
  */
-async function calcularRutaMasCortaEntreNodos(lat1, lon1, lat2, lon2) {
-    let nodo1 = await mostrarNodoCercanoConMarcador(lat1, lon1);
-    let nodo2 = await mostrarNodoCercanoConMarcador(lat2, lon2);
-
-    if (!nodo1 || !nodo2) {
-        console.log("No se encontraron nodos cercanos");
-        return;
-    }
-
-    // URL de OSRM para calcular la ruta
-    const url = `https://router.project-osrm.org/route/v1/driving/${nodo1.lon},${nodo1.lat};${nodo2.lon},${nodo2.lat}?overview=full&steps=true`;
-
+async function calcularRutaEntreNodos(nodos, roundtrip = true) {
     try {
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.routes && data.routes.length > 0 && data.routes[0].legs.length > 0 && data.routes[0].legs[0].steps.length > 0) {       
-            const steps = data.routes[0].legs[0].steps;
-
-            steps.forEach(step => {
-                const name = step.name || "Sin nombre";
-
-                const polylineDecoded = polyline.decode(step.geometry); // Decodifica la geometría
-                const coordinates = polylineDecoded.map(coord => [coord[0], coord[1]]);
-
-                // Crear una línea en el mapa para cada tramo
-                L.polyline(coordinates, { color: 'red', weight: 4 }).addTo(map)
-                    .bindPopup(`Calle: ${name}`);
-            });
-
-        } else {
-            console.log("No se encontró una ruta entre los nodos");
+        if (nodos.length < 2) {
+            console.log("Se necesitan al menos 2 nodos para calcular una ruta.");
+            return;
         }
+
+        // Mostrar el nodo más cercano a los nodos
+        for (let i = 0; i < nodos.length; i++) {
+            const nodo = nodos[i];
+
+            const nodo_cercano = await mostrarNodoCercanoConMarcador(nodo.lat, nodo.lon, 50);
+            if (nodo_cercano) {
+                nodos[i] = nodo_cercano; // Reemplazar el nodo original por el más cercano
+            }
+        }
+
+        const coordenadas = nodos.map(nodo => `${nodo.lon},${nodo.lat}`).join(";");
+
+        const routeUrl = `https://router.project-osrm.org/route/v1/driving/${coordenadas}?overview=full&steps=true`;
+
+        const routeResponse = await fetch(routeUrl);
+        if (!routeResponse.ok) {
+            console.error(`Error al consultar OSRM Route: ${routeResponse.statusText}`);
+            return;
+        }
+
+        const routeData = await routeResponse.json();
+
+        if (!routeData.routes || routeData.routes.length === 0) {
+            console.log("No se encontró una ruta con detalles.");
+            return;
+        }
+
+        if (routeData.routes.length > 1) {
+            console.log("Se encontraron múltiples rutas. Usando la primera.");
+        }
+
+        // Mostrar la distancia y duración de la ruta
+        const routeSummary = routeData.routes[0];
+        console.log(`Ruta calculada: ${routeSummary.distance / 1000} km en ${routeSummary.duration / 60} minutos.`);
+
+
+        // Dibujar los pasos en el mapa y etiquetar las calles
+        const steps = routeData.routes[0].legs.flatMap(leg => leg.steps);
+
+        steps.forEach(step => {
+            const name = step.name || "Sin nombre";
+
+            // Decodificar la geometría de cada tramo
+            const polylineDecoded = polyline.decode(step.geometry);
+            const coordinates = polylineDecoded.map(coord => [coord[0], coord[1]]);
+
+            const color = 'red'; //generarColorAleatorio();
+
+            // Dibujar cada tramo con flechas
+            dibujarPolilineaConFlechas(coordinates, color, name);
+        });
+
     } catch (error) {
-        console.error("Error calculando la ruta:", error);
+        console.error("Error calculando la ruta con steps:", error);
     }
 }
-
