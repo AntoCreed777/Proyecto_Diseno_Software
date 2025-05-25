@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'maps',# App de mapas usando OpenStreetMap
     'accounts',
+    'rest_framework',  # Django REST framework
+    'api',
 ]
 
 MIDDLEWARE = [
