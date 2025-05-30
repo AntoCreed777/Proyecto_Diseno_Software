@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
 <body class="imagen_fondo">
+    {% if messages %}
+    {% for message in messages %}
+    <div>
+      {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
     <div class="inicio_sesion" id="inicio_sesion">
         <h1>Inicio de sesión</h1>
         <form method="post">
