@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Iniciar sesión</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+    <div>
+        <h1>Pagina en desarrollo</h1>
+        <form method="post">
+            {% csrf_token %}
+            <input type ="hidden" name="id_cerrar_sesion" value="{{id_cerrar_sesion}}">
+            <button>cerrar sesion</button>
+        </form>
+    </div>
+</body>
+</html>

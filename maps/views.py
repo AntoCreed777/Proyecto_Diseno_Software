@@ -1,7 +1,8 @@
 from django.shortcuts import render
 import json
-
+from django.contrib.auth.decorators import login_required
 # Create your views here.
+@login_required(login_url='/accounts/login/')
 def map(request):
 
     # La direccion que esta en el contexto se debe de recibir usando ''request.POST.get('direccion')''

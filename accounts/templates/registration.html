@@ -7,6 +7,14 @@
     <title>Registrarse</title>
 </head>
 <body class="imagen_fondo">
+    {% if messages %}
+    {% for message in messages %}
+    <div>
+      {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+
 
     <div class="registrarse" id="registrarse">
         <h1>Registrarse</h1>

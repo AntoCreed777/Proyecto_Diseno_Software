@@ -25,4 +25,5 @@ urlpatterns = [
     path('maps/', include('maps.urls')),  # Incluye las URLs de la app de mapas
     path('accounts/', include('accounts.urls')),  # Incluye las URLs de la app de cuentas
     path('api/', include('api.urls')),  # Incluye las URLs de la API de la BD
+    path('home/',include('home.urls')),
 ]
