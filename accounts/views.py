@@ -8,11 +8,11 @@ from django.db import IntegrityError
 def login_view(request):
      if request.method == 'POST':
           #Obtencion de usuario y contraseña, en caso de no obtener nada usuario y contraseña seran iguales a nada
-          usuario = request.POST.get('usuario', '').strip()
+          usuario = request.POST.get('usuario', '')
           contraseña = request.POST.get('contraseña', '')
           user = authenticate(request,username=usuario,password=contraseña)
           if user is None:
-                messages.error(request, 'Usuario o contraseña incorrectos')
+                messages.error(request, 'Usuario o contraseña son incorrectos')
           else:
                login(request,user)
                return redirect('/home/main')
