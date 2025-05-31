@@ -26,4 +26,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),  # Incluye las URLs de la app de cuentas
     path('api/', include('api.urls')),  # Incluye las URLs de la API de la BD
     path('home/',include('home.urls')),
+    path('Conductor/', include('Conductor.urls')), # Incluye URLs de la página conductor
+    path('Administrador/', include('Administrador.urls')), # Incluye URLs de la página administrador
+    path('Despachador/', include('Despachador.urls')),  # Incluye URLs de la página despachador
 ]

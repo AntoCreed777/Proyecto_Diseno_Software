@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'rest_framework',  # Django REST framework
     'api',
     'home',
+    'Conductor',
+    'Administrador',
+    'Despachador',
 ]
 
 MIDDLEWARE = [
