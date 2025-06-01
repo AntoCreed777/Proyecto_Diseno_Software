@@ -1,11 +1,14 @@
 from django.shortcuts import render
 from django.contrib.auth import logout
 from django.shortcuts import render,redirect
-from django.contrib.auth.decorators import login_required
 
-@login_required(login_url='/accounts/login/')
-def logout_view(request):
+
+def bottons_view(request):
     if request.method == 'POST':
-        logout(request)
-        return redirect('/accounts/login')
+        accion = request.POST.get('accion')
+        if 'logout' == accion:
+            logout(request)
+            return redirect('/accounts/login')
+        if 'ingresar' == accion:
+            pass
     return render(request,'home.html')
