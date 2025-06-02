@@ -1,0 +1,50 @@
+.encabezado{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 10vh;
+    background-color: black;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center; 
+    gap: 10px; 
+}
+.ingreso{
+    color: white;
+    font-size: 2vh;
+    text-decoration: none;
+}
+.contenedor{
+    width: 10vh;
+    height: 5vh;
+    border-radius: 25px;
+    background-color: blue;
+    border: 2px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    color: white;
+    font-size: 2vh;
+}
+.imagen{
+    background-image: url("img/foto_home_repartidor.jpg");
+    top: 9vh;
+    width: 100%;
+    height: 50vh;
+    background-size: cover;
+    position: relative;
+    display: block;
+}
+.contenedor2{
+    display: flex;
+    position: relative;
+    top: 9vh;
+    justify-content: center;
+    align-items: center;
+}
+.idpaquete{
+    display: flex;
+    top: 60vh;
+    color: white;
+}

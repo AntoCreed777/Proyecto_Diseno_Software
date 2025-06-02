@@ -2,17 +2,33 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Iniciar sesión</title>
+    <title>Inico</title>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="stylesheet" href="{% static 'home.css' %}">
+    
 </head>
 <body>
+    <div class="imagen"></div>
     <div>
-        <h1>Pagina en desarrollo</h1>
+        <div class="encabezado">
+            <form method="post">
+                {% csrf_token %}
+                <button class="contenedor" type="submit" name="accion" value="logout">cerrar sesion</button>
+            </form>
+            {% if not user.is_authenticated %}
+            <div class="contenedor">
+                <a class ="ingreso" href="{% url 'login' %}" >Ingresar</a>
+            </div>
+            
+            {% endif %}
+            
+        </div>
+    </div>
+    <div class="contenedor2">
         <form method="post">
             {% csrf_token %}
-            <input type ="hidden" name="id_cerrar_sesion" value="{{id_cerrar_sesion}}">
-            <button>cerrar sesion</button>
+            <input type="text" name="accion" placeholder="N° paquete">
+            <input type="submit" value="ingresar" >
         </form>
     </div>
 </body>

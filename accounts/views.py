@@ -41,6 +41,8 @@ def registration(request):
                     return redirect('/accounts/login')
                except IntegrityError:
                     messages.error(request, 'El usuario ya existe')
+               except Exception as e:
+                    messages.error(request, 'Ocurrió un error inesperado')
           else:
                messages.error(request, 'Las contraseñas no coinciden')
      
