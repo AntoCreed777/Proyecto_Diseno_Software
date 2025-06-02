@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'home',
     'Conductor',
     'Administrador',
-    'Despachador',
+    'despachador',
 ]
 
 MIDDLEWARE = [

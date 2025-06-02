@@ -1,17 +1,34 @@
-{% extends "Despachador/navegacion/template_inicial.html" %}
+{% extends "despachador/template_base.html" %}
 
 {% block title %}
-Rendimiento
+Conductores
 {% endblock %}
 
 {% block content %}
-    <h1> Conductores </h1>
-    <h2> Pagina con la información de conductores </h2>
-    <ul>
-        <li>Entregas totales de la semana</li>
-        <li>Tiempo promedio de entrega</li>
-        <li>Distancia total recorrida</li>
-        <li>Día más productivo</li>
-    </ul>
-
+<div class="filter-box">
+    <input type="int" placeholder="ID del conductor">
+    <input type="text" placeholder="Nombre del conductor">
+    <input type="text" placeholder="Patente del vehículo">
+    <select>
+        <option value="">Todos los estados</option>
+        <option value="disponible">Disponible</option>
+        <option value="no disponible">No disponible</option>
+        <option value="en ruta">En ruta</option>
+    </select>        
+    <button>Buscar</button>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre conductor</th>
+            <th>Patente vehículo</th>
+            <th>Estado</th>
+            <th>Detalles</th>
+        </tr>
+    </thead>
+    <tbody>
+    <!--Aquí va el contenido de la tabla -->
+    </tbody>
+</table>
 {% endblock %}

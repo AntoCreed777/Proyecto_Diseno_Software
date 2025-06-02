@@ -1,22 +1,42 @@
-{% extends "Despachador/navegacion/template_inicial.html" %}
+{% extends "despachador/template_base.html" %}
 
 {% block title %}
-Pedidos
+Paquetes
 {% endblock %}
 
 {% block content %}
-    <h1> Paquetes </h1>
-    <h2> Pagina donde tendremos información de los paquetes, tendremos un buscador de paquetes y una tabla</h2>
-
-    <h3> Una tabla nos entregará la siguiente información: </h3>
-    <ul>
-        <li>ID</li>
-        <li>Fecha</li>
-        <li>Estado del paquete</li>
-        <li>Cliente</li>
-        <li>Direccion</li>
-        <li>Conductor</li>
-        <li>Detalles</li>
-    </ul>
-    <p> Tendremos un bloque a la izquierda que nos entregará los detalles de cierto pedido</p>
+<div class="filter-box">
+    <input type="int" placeholder="ID del paquete">
+    <input type="date" placeholder="Fecha">
+    <select>
+        <option value="">Todos los estados</option>
+        <option value="sin asignar">Sin asignar</option>
+        <option value="asignados">Asignado</option>
+        <option value="en ruta">En ruta</option>
+        <option value="recibidos">Recibidos</option>
+    </select>        
+    <select>
+        <option value="">Todos los conductores</option>
+        <option value="conductor1">Conductor 1</option>
+        <option value="conductor2">Conductor 2</option>
+    </select>
+    <button>Buscar</button>
+    <button>Registrar nuevo paquete</button>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Estado del paquete</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Conductor</th>
+            <th>Detalles</th>
+        </tr>
+    </thead>
+    <tbody>
+    <!--Aquí va el contenido de la tabla -->
+    </tbody>
+</table>
 {% endblock %}
