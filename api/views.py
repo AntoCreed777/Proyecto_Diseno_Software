@@ -1,43 +1,77 @@
 from rest_framework import viewsets, permissions
-from .models import *
-from .serializers import *
+from .models import (
+    Usuario, Cliente, Conductor, Admin, Vehiculo, Ruta,
+    ConductorPoseeRuta, EstadoEntrega, Paquete, Notificacion
+)
+from .serializers import (
+    UsuarioSerializer, ClienteSerializer, UsuarioClienteSerializer,
+    ConductorSerializer, UsuarioConductorSerializer, AdminSerializer,
+    UsuarioAdminSerializer, VehiculoSerializer, RutaSerializer,
+    ConductorPoseeRutaSerializer, EstadoEntregaSerializer,
+    PaqueteSerializer, NotificacionSerializer
+)
 
-class ClienteListView(viewsets.ModelViewSet):
+# Usuario ViewSet
+class UsuarioViewSet(viewsets.ModelViewSet):
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
+
+# Cliente ViewSet
+class ClienteViewSet(viewsets.ModelViewSet):
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
-    permission_classes = [permissions.AllowAny]
 
-class ConductorListView(viewsets.ModelViewSet):
+# Usuario-Cliente ViewSet
+class UsuarioClienteViewSet(viewsets.ModelViewSet):
+    queryset = Cliente.objects.all()
+    serializer_class = UsuarioClienteSerializer
+
+# Conductor ViewSet
+class ConductorViewSet(viewsets.ModelViewSet):
     queryset = Conductor.objects.all()
     serializer_class = ConductorSerializer
-    permission_classes = [permissions.AllowAny]
 
-class AdminListView(viewsets.ModelViewSet):
+# Usuario-Conductor ViewSet
+class UsuarioConductorViewSet(viewsets.ModelViewSet):
+    queryset = Conductor.objects.all()
+    serializer_class = UsuarioConductorSerializer
+
+# Admin ViewSet
+class AdminViewSet(viewsets.ModelViewSet):
     queryset = Admin.objects.all()
     serializer_class = AdminSerializer
-    permission_classes = [permissions.AllowAny]
 
-class VehiculoListView(viewsets.ModelViewSet):
+# Usuario-Admin ViewSet
+class UsuarioAdminViewSet(viewsets.ModelViewSet):
+    queryset = Admin.objects.all()
+    serializer_class = UsuarioAdminSerializer
+
+# Vehículo ViewSet
+class VehiculoViewSet(viewsets.ModelViewSet):
     queryset = Vehiculo.objects.all()
     serializer_class = VehiculoSerializer
-    permission_classes = [permissions.AllowAny]
 
-class RutaListView(viewsets.ModelViewSet):
+# Ruta ViewSet
+class RutaViewSet(viewsets.ModelViewSet):
     queryset = Ruta.objects.all()
     serializer_class = RutaSerializer
-    permission_classes = [permissions.AllowAny]
 
-class PaqueteListView(viewsets.ModelViewSet):
+# ConductorPoseeRuta ViewSet
+class ConductorPoseeRutaViewSet(viewsets.ModelViewSet):
+    queryset = ConductorPoseeRuta.objects.all()
+    serializer_class = ConductorPoseeRutaSerializer
+
+# EstadoEntrega ViewSet
+class EstadoEntregaViewSet(viewsets.ModelViewSet):
+    queryset = EstadoEntrega.objects.all()
+    serializer_class = EstadoEntregaSerializer
+
+# Paquete ViewSet
+class PaqueteViewSet(viewsets.ModelViewSet):
     queryset = Paquete.objects.all()
     serializer_class = PaqueteSerializer
-    permission_classes = [permissions.AllowAny]
 
-class NotificacionListView(viewsets.ModelViewSet):
+# Notificación ViewSet
+class NotificacionViewSet(viewsets.ModelViewSet):
     queryset = Notificacion.objects.all()
     serializer_class = NotificacionSerializer
-    permission_classes = [permissions.AllowAny]
-
-class EntregaListView(viewsets.ModelViewSet):
-    queryset = Entrega.objects.all()
-    serializer_class = EntregaSerializer
-    permission_classes = [permissions.AllowAny]
