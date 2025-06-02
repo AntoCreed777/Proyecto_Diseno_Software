@@ -1,13 +1,16 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
 from .models import (
     Usuario, Cliente, Conductor, Admin, Vehiculo,
     Ruta, ConductorPoseeRuta, EstadoEntrega, Paquete,
     Notificacion
 )
+from django.contrib.auth.models import Group
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
+    rol = serializers.ChoiceField(choices=Usuario._meta.get_field('rol').choices, read_only=True)
 
     class Meta:
         model = Usuario
@@ -23,8 +26,13 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        rol = self.context.get('rol')
+        if rol not in dict(Usuario._meta.get_field('rol').choices):
+            raise serializers.ValidationError({"rol": "Rol inválido."})
+
         password = validated_data.pop('password')
         usuario = Usuario(**validated_data)
+        usuario.rol = rol
         usuario.set_password(password)
         usuario.save()
         return usuario
@@ -36,36 +44,19 @@ class ClienteSerializer(serializers.ModelSerializer):
         model = Cliente
         fields = ['id', 'usuario', 'direccion_hogar']
 
-    def validate_direccion_hogar(self, value):
-        if not value:
-            raise serializers.ValidationError("La dirección del hogar es obligatoria.")
-        return value
-
     def create(self, validated_data):
         usuario_data = validated_data.pop('usuario')
-        usuario_serializer = UsuarioSerializer(data=usuario_data)
-        usuario_serializer.is_valid(raise_exception=True)
-        usuario = usuario_serializer.save()
-        return Cliente.objects.create(usuario=usuario, **validated_data)
 
-class UsuarioClienteSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='usuario.username')
-    email = serializers.EmailField(source='usuario.email')
-    first_name = serializers.CharField(source='usuario.first_name')
-    last_name = serializers.CharField(source='usuario.last_name')
-    rol = serializers.ChoiceField(choices=Usuario._meta.get_field('rol').choices, source='usuario.rol')
-    password = serializers.CharField(source='usuario.password', write_only=True, required=True)
+        with transaction.atomic():
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'cliente'})
+            usuario_serializer.is_valid(raise_exception=True)
+            usuario = usuario_serializer.save()
 
-    class Meta:
-        model = Cliente
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'rol', 'direccion_hogar', 'password']
+            grupo = Group.objects.get(name='Cliente')
+            usuario.groups.add(grupo)
 
-    def create(self, validated_data):
-        usuario_data = validated_data.pop('usuario')
-        usuario_serializer = UsuarioSerializer(data=usuario_data)
-        usuario_serializer.is_valid(raise_exception=True)
-        usuario = usuario_serializer.save()
-        return Cliente.objects.create(usuario=usuario, **validated_data)
+            cliente = Cliente.objects.create(usuario=usuario, **validated_data)
+            return cliente
 
 class ConductorSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer()
@@ -74,37 +65,19 @@ class ConductorSerializer(serializers.ModelSerializer):
         model = Conductor
         fields = ['id', 'usuario', 'vehiculo']
 
-    def validate_vehiculo(self, value):
-        if not value:
-            raise serializers.ValidationError("El vehículo es obligatorio.")
-        return value
-
     def create(self, validated_data):
         usuario_data = validated_data.pop('usuario')
-        usuario_serializer = UsuarioSerializer(data=usuario_data)
-        usuario_serializer.is_valid(raise_exception=True)
-        usuario = usuario_serializer.save()
-        return Conductor.objects.create(usuario=usuario, **validated_data)
 
-class UsuarioConductorSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='usuario.username')
-    email = serializers.EmailField(source='usuario.email')
-    first_name = serializers.CharField(source='usuario.first_name')
-    last_name = serializers.CharField(source='usuario.last_name')
-    rol = serializers.ChoiceField(choices=Usuario._meta.get_field('rol').choices, source='usuario.rol')
-    matricula_vehiculo = serializers.CharField(source='vehiculo.matricula', read_only=True)
-    password = serializers.CharField(source='usuario.password', write_only=True, required=True)
+        with transaction.atomic():
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'conductor'})
+            usuario_serializer.is_valid(raise_exception=True)
+            usuario = usuario_serializer.save()
 
-    class Meta:
-        model = Conductor
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'rol', 'matricula_vehiculo', 'password']
+            grupo = Group.objects.get(name='Conductor')
+            usuario.groups.add(grupo)
 
-    def create(self, validated_data):
-        usuario_data = validated_data.pop('usuario')
-        usuario_serializer = UsuarioSerializer(data=usuario_data)
-        usuario_serializer.is_valid(raise_exception=True)
-        usuario = usuario_serializer.save()
-        return Conductor.objects.create(usuario=usuario, **validated_data)
+            conductor = Conductor.objects.create(usuario=usuario, **validated_data)
+            return conductor
 
 class AdminSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer()
@@ -120,29 +93,17 @@ class AdminSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         usuario_data = validated_data.pop('usuario')
-        usuario_serializer = UsuarioSerializer(data=usuario_data)
-        usuario_serializer.is_valid(raise_exception=True)
-        usuario = usuario_serializer.save()
-        return Admin.objects.create(usuario=usuario, **validated_data)
 
-class UsuarioAdminSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source='usuario.username')
-    email = serializers.EmailField(source='usuario.email')
-    first_name = serializers.CharField(source='usuario.first_name')
-    last_name = serializers.CharField(source='usuario.last_name')
-    rol = serializers.ChoiceField(choices=Usuario._meta.get_field('rol').choices, source='usuario.rol')
-    password = serializers.CharField(source='usuario.password', write_only=True, required=True)
+        with transaction.atomic():
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'admin'})
+            usuario_serializer.is_valid(raise_exception=True)
+            usuario = usuario_serializer.save()
 
-    class Meta:
-        model = Admin
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'rol', 'nivel_acceso', 'password']
+            grupo = Group.objects.get(name='Admin')
+            usuario.groups.add(grupo)
 
-    def create(self, validated_data):
-        usuario_data = validated_data.pop('usuario')
-        usuario_serializer = UsuarioSerializer(data=usuario_data)
-        usuario_serializer.is_valid(raise_exception=True)
-        usuario = usuario_serializer.save()
-        return Admin.objects.create(usuario=usuario, **validated_data)
+            admin = Admin.objects.create(usuario=usuario, **validated_data)
+            return admin
 
 class VehiculoSerializer(serializers.ModelSerializer):
     class Meta:

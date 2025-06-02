@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 ]
 
 AUTH_USER_MODEL = 'api.Usuario'
+LOGIN_URL = '/accounts/login/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 MIDDLEWARE = [
