@@ -1,71 +1,99 @@
 # Create your models here.
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+### Modelo MR
+# 
+# cliente(@id, contraseña, nombre, apellido, correo, telefono, direccion_hogar, fecha_registro, fecha_ultima_modificacion)
+#
+# conductor(@id, contraseña, nombre, apellido, correo, telefono, fecha_registro, fecha_ultima_modificacion, id_vehiculo)
+#   - FK: id_vehiculo -> vehiculo(id)
+#
+# admin(@id, contraseña, nombre, apellido, correo, telefono, nivel_acceso, fecha_registro, fecha_ultima_modificacion)
+#
+# ruta(@id, ruta_kml, duracion_estimada_minutos, distancia_km, origen, destino, fecha_en_que_se_ejecuto)
+#
+# conductorPOSEEruta(id_conductor, id_ruta)
+#   - FK: id_conductor -> conductor(id)
+#   - FK: id_ruta -> ruta(id)
+#
+# vehiculo(@matricula, marca, año_de_fabricacion)
+#
+# paquete(@id, dimenciones, peso, fecha_envio, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, id_cliente, id_conductor, id_estado)
+#   - FK: id_cliente -> cliente(id)
+#   - FK: id_conductor -> conductor(id)
+#   - FK: id_estado -> estado(id)
+#
+# estado_entrega(@id, estado)
+#
+# notificacion(@id, mensaje, fecha_envio)
+#   - FK: id_cliente -> cliente(id)
+#
+### Fin Modelo MR
 
 
-class Usuario(models.Model):
-    id = models.AutoField(primary_key=True)
-    correo = models.EmailField(unique=True)
-    nombre = models.CharField(max_length=255)
-    contraseña = models.CharField(max_length=255)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
+# Modelo base de usuario (Es la generalizacion del MER)
+class Usuario(AbstractUser):
+    # username, password, email, first_name, last_name ya existen
+    rol = models.CharField(max_length=20, choices=[('cliente', 'Cliente'), ('conductor', 'Conductor'), ('admin', 'Admin')])
 
-    class Meta:
-        abstract = True # Esta clase no se crea como tabla en la base de datos
+class Cliente(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    direccion_hogar = models.CharField(max_length=255)
 
+class Conductor(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    vehiculo = models.ForeignKey('Vehiculo', on_delete=models.SET_NULL, null=True, blank=True)
 
-class Cliente(Usuario):
-    pass
-
-
-class Conductor(Usuario):
-    pass
-
-
-class Admin(Usuario):
-    nivel_acceso = models.CharField(max_length=50)
-
+class Admin(models.Model):
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    nivel_acceso = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(5),
+        ],
+        default=1
+    )
 
 class Vehiculo(models.Model):
     matricula = models.CharField(max_length=50, primary_key=True)
     marca = models.CharField(max_length=100)
     año_de_fabricacion = models.PositiveIntegerField()
-    conductor = models.OneToOneField(Conductor, on_delete=models.SET_NULL, null=True, blank=True)
-
 
 class Ruta(models.Model):
     id = models.AutoField(primary_key=True)
     ruta_kml = models.TextField()
-    duracion_estimada_min = models.PositiveIntegerField()
+    duracion_estimada_minutos = models.PositiveIntegerField()
     distancia_km = models.FloatField()
     origen = models.CharField(max_length=255)
     destino = models.CharField(max_length=255)
+    fecha_en_que_se_ejecuto = models.DateTimeField(null=True, blank=True)
 
-
-class Paquete(models.Model):
-    id = models.AutoField(primary_key=True)
-    ubicacion_actual = models.CharField(max_length=255)
-    direccion_envio = models.CharField(max_length=255)
-    dimensiones = models.CharField(max_length=100)
-    peso = models.FloatField()
-
+# Relación muchos a muchos entre Conductor y Ruta
+class ConductorPoseeRuta(models.Model):
+    conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE)
+    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE)
 
 class EstadoEntrega(models.Model):
     id = models.AutoField(primary_key=True)
     estado = models.CharField(max_length=100)
-    paquete = models.OneToOneField(Paquete, on_delete=models.CASCADE, related_name='estado')
 
+class Paquete(models.Model):
+    id = models.AutoField(primary_key=True)
+    dimensiones = models.CharField(max_length=100)
+    peso = models.FloatField()
+    fecha_envio = models.DateTimeField(auto_now_add=True)
+    ubicacion_actual = models.CharField(max_length=255)
+    direccion_envio = models.CharField(max_length=255)
+    nombre_destinatario = models.CharField(max_length=255)
+    rut_destinatario = models.CharField(max_length=20)
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='paquetes')
+    conductor = models.ForeignKey(Conductor, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
+    estado = models.ForeignKey(EstadoEntrega, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
 
 class Notificacion(models.Model):
     id = models.AutoField(primary_key=True)
     mensaje = models.TextField()
-    fecha_envio = models.DateTimeField()
+    fecha_envio = models.DateTimeField(auto_now_add=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='notificaciones')
-
-
-class Entrega(models.Model):
-    id = models.AutoField(primary_key=True)
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='entregas')
-    conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE, related_name='entregas')
-    paquete = models.ForeignKey(Paquete, on_delete=models.CASCADE, related_name='entregas')
-    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE, related_name='entregas')
-    estado_entrega = models.ForeignKey(EstadoEntrega, on_delete=models.CASCADE, related_name='entregas')

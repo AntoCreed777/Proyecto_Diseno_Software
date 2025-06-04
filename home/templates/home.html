@@ -8,18 +8,26 @@
     
 </head>
 <body>
-    <div class="imagen"></div>
+    <div class ="palabras_imagen">
+        <h2>¡Tu envío, en las mejores manos!</h2>
+    </div>
+    <img src="../../static/img/paquete.jpg" class ="imagen">
+    
+    
     <div>
         <div class="encabezado">
+            <h1>Nombre de la empresa</h1>
             <form method="post">
                 {% csrf_token %}
+                {% if user.is_authenticated %}
                 <button class="contenedor" type="submit" name="accion" value="logout">cerrar sesion</button>
+                {% endif %}
             </form>
+            {% csrf_token %}
             {% if not user.is_authenticated %}
             <div class="contenedor">
                 <a class ="ingreso" href="{% url 'login' %}" >Ingresar</a>
             </div>
-            
             {% endif %}
             
         </div>
@@ -27,9 +35,29 @@
     <div class="contenedor2">
         <form method="post">
             {% csrf_token %}
-            <input type="text" name="accion" placeholder="N° paquete">
-            <input type="submit" value="ingresar" >
+            <input type="text" class="numero_envio" name="accion" placeholder="N° paquete">
+            <input type="submit" class="ingresar" value="ingresar" >
         </form>
+    </div>
+    <div class="contenedor3">
+        <img src="../../static/img/camion.png" class ="imagenes">
+        <img src="../../static/img/candado.png" class ="imagenes">
+        <img src="../../static/img/atencion.png" class ="imagenes">
+        <img src="../../static/img/apreton_de_manos.png" class ="imagenes">
+    </div>
+    <div class="contenedor4">
+        <h1 class = "salto_de_linea">Porque tu tiempo vale, entregamos más rápido que nunca</h1>
+        <h1 class = "salto_de_linea">Seguridad garantizada, desde la recolección hasta la entrega.</h1>
+        <h1 class = "salto_de_linea">Atención que te escucha, envíos que responden</h1>
+        <h1 class = "salto_de_linea">Compromiso, puntualidad y excelencia en cada trayecto</h1>
+    </div>
+    <div class="ayuda">
+        <h1>Ayuda</h1>
+        <h2 class="caja">Conoce la empresa</h2>
+        <h2 class="caja">Contanto</h2>
+        <h2 class="caja">Código de conducta</h2>
+        <h2 class="caja">Politicas</h2>
+        <h2 class="caja">Términos y condiciones</h2>
     </div>
 </body>
 </html>

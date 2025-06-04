@@ -1,106 +1,148 @@
 from rest_framework import serializers
-from .models import *
+from django.contrib.auth.password_validation import validate_password
+from django.db import transaction
+from .models import (
+    Usuario, Cliente, Conductor, Admin, Vehiculo,
+    Ruta, ConductorPoseeRuta, EstadoEntrega, Paquete,
+    Notificacion
+)
+from django.contrib.auth.models import Group
+
+class UsuarioSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=True)
+    rol = serializers.ChoiceField(choices=Usuario._meta.get_field('rol').choices, read_only=True)
+
+    class Meta:
+        model = Usuario
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password', 'rol']
+
+    def validate(self, attrs):
+        if Usuario.objects.filter(username=attrs.get('username')).exists():
+            raise serializers.ValidationError({"username": "El nombre de usuario ya está en uso."})
+        if Usuario.objects.filter(email=attrs.get('email')).exists():
+            raise serializers.ValidationError({"email": "El correo electrónico ya está registrado."})
+
+        validate_password(attrs.get('password'))
+        return attrs
+
+    def create(self, validated_data):
+        rol = self.context.get('rol')
+        if rol not in dict(Usuario._meta.get_field('rol').choices):
+            raise serializers.ValidationError({"rol": "Rol inválido."})
+
+        password = validated_data.pop('password')
+        usuario = Usuario(**validated_data)
+        usuario.rol = rol
+        usuario.set_password(password)
+        usuario.save()
+        return usuario
 
 class ClienteSerializer(serializers.ModelSerializer):
+    usuario = UsuarioSerializer()
+
     class Meta:
         model = Cliente
-        fields = '__all__'
-        extra_kwargs = {
-            'contraseña': {'write_only': True}
-        }
+        fields = ['id', 'usuario', 'direccion_hogar']
 
     def create(self, validated_data):
-        user = Cliente(**validated_data)
-        user.set_password(validated_data['contraseña'])
-        user.save()
-        return user
-    
+        usuario_data = validated_data.pop('usuario')
+
+        with transaction.atomic():
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'cliente'})
+            usuario_serializer.is_valid(raise_exception=True)
+            usuario = usuario_serializer.save()
+
+            grupo = Group.objects.get(name='Cliente')
+            usuario.groups.add(grupo)
+
+            cliente = Cliente.objects.create(usuario=usuario, **validated_data)
+            return cliente
+
 class ConductorSerializer(serializers.ModelSerializer):
+    usuario = UsuarioSerializer()
+
     class Meta:
         model = Conductor
-        fields = '__all__'
-        extra_kwargs = {
-            'contraseña': {'write_only': True}
-        }
+        fields = ['id', 'usuario', 'vehiculo']
 
     def create(self, validated_data):
-        user = Conductor(**validated_data)
-        user.set_password(validated_data['contraseña'])
-        user.save()
-        return user
-    
+        usuario_data = validated_data.pop('usuario')
+
+        with transaction.atomic():
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'conductor'})
+            usuario_serializer.is_valid(raise_exception=True)
+            usuario = usuario_serializer.save()
+
+            grupo = Group.objects.get(name='Conductor')
+            usuario.groups.add(grupo)
+
+            conductor = Conductor.objects.create(usuario=usuario, **validated_data)
+            return conductor
+
 class AdminSerializer(serializers.ModelSerializer):
+    usuario = UsuarioSerializer()
+
     class Meta:
         model = Admin
-        fields = '__all__'
-        extra_kwargs = {
-            'contraseña': {'write_only': True}
-        }
+        fields = ['id', 'usuario', 'nivel_acceso']
+
+    def validate_nivel_acceso(self, value):
+        if not 1 <= value <= 5:
+            raise serializers.ValidationError("El nivel de acceso debe estar entre 1 y 5.")
+        return value
 
     def create(self, validated_data):
-        user = Admin(**validated_data)
-        user.set_password(validated_data['contraseña'])
-        user.save()
-        return user
-    
+        usuario_data = validated_data.pop('usuario')
+
+        with transaction.atomic():
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'admin'})
+            usuario_serializer.is_valid(raise_exception=True)
+            usuario = usuario_serializer.save()
+
+            grupo = Group.objects.get(name='Admin')
+            usuario.groups.add(grupo)
+
+            admin = Admin.objects.create(usuario=usuario, **validated_data)
+            return admin
+
 class VehiculoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehiculo
         fields = '__all__'
-        extra_kwargs = {
-            'conductor': {'required': False}
-        }
-    def create(self, validated_data):
-        vehiculo = Vehiculo(**validated_data)
-        vehiculo.save()
-        return vehiculo
-    
+
+    def validate_matricula(self, value):
+        if not value:
+            raise serializers.ValidationError("La matrícula es obligatoria.")
+        if Vehiculo.objects.filter(matricula=value).exists():
+            raise serializers.ValidationError("La matrícula ya está registrada.")
+        return value
+
 class RutaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ruta
         fields = '__all__'
 
-    def create(self, validated_data):
-        ruta = Ruta(**validated_data)
-        ruta.save()
-        return ruta
-    
-class PaqueteSerializer(serializers.ModelSerializer):
+class ConductorPoseeRutaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Paquete
+        model = ConductorPoseeRuta
         fields = '__all__'
 
-    def create(self, validated_data):
-        paquete = Paquete(**validated_data)
-        paquete.save()
-        return paquete
-    
 class EstadoEntregaSerializer(serializers.ModelSerializer):
     class Meta:
         model = EstadoEntrega
         fields = '__all__'
 
-    def create(self, validated_data):
-        estado_entrega = EstadoEntrega(**validated_data)
-        estado_entrega.save()
-        return estado_entrega
-    
+class PaqueteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Paquete
+        fields = '__all__'
+
+    def validate_peso(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("El peso debe ser mayor a 0.")
+        return value
+
 class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notificacion
         fields = '__all__'
-
-    def create(self, validated_data):
-        notificacion = Notificacion(**validated_data)
-        notificacion.save()
-        return notificacion
-    
-class EntregaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Entrega
-        fields = '__all__'
-
-    def create(self, validated_data):
-        entrega = Entrega(**validated_data)
-        entrega.save()
-        return entrega
