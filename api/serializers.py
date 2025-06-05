@@ -2,9 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from .models import (
-    Usuario, Cliente, Conductor, Admin, Vehiculo,
-    Ruta, ConductorPoseeRuta, EstadoEntrega, Paquete,
-    Notificacion
+    Usuario, Cliente, Conductor, Despachador, Admin,
+    Vehiculo, Ruta, ConductorPoseeRuta, EstadoEntrega,
+    Paquete, Notificacion
 )
 from django.contrib.auth.models import Group
 
@@ -14,7 +14,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'password', 'rol']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'telefono', 'password', 'rol']
 
     def validate(self, attrs):
         if Usuario.objects.filter(username=attrs.get('username')).exists():
@@ -63,7 +63,7 @@ class ConductorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Conductor
-        fields = ['id', 'usuario', 'vehiculo']
+        fields = ['id', 'usuario', 'id_vehiculo', 'id_despachador']
 
     def create(self, validated_data):
         usuario_data = validated_data.pop('usuario')
@@ -78,6 +78,26 @@ class ConductorSerializer(serializers.ModelSerializer):
 
             conductor = Conductor.objects.create(usuario=usuario, **validated_data)
             return conductor
+
+class DespachadorSerializer(serializers.ModelSerializer):
+    usuario = UsuarioSerializer()
+
+    class Meta:
+        model = Despachador
+        fields = ['id', 'usuario']
+
+    def create(self, validated_data):
+        usuario_data = validated_data.pop('usuario')
+        with transaction.atomic():
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'despachador'})
+            usuario_serializer.is_valid(raise_exception=True)
+            usuario = usuario_serializer.save()
+
+            grupo = Group.objects.get(name='Despachador')
+            usuario.groups.add(grupo)
+            
+            despachador = Despachador.objects.create(usuario=usuario, **validated_data)
+            return despachador
 
 class AdminSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer()

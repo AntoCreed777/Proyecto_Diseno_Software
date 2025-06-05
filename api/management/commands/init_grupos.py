@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from api.models import (
-    Usuario, Cliente, Conductor, Admin, Vehiculo,
+    Usuario, Cliente, Conductor, Despachador, Admin, Vehiculo,
     Ruta, ConductorPoseeRuta, EstadoEntrega, Paquete,
     Notificacion
 )
@@ -14,6 +14,7 @@ class Command(BaseCommand):
         # Crear grupos (una vez)
         cliente_group, _ = Group.objects.get_or_create(name='Cliente')
         conductor_group, _ = Group.objects.get_or_create(name='Conductor')
+        despachador_group, _ = Group.objects.get_or_create(name='Despachador')
         admin_group, _ = Group.objects.get_or_create(name='Admin')
 
         def obtener_permisos(modelo):
@@ -35,6 +36,7 @@ class Command(BaseCommand):
         permisos_usuario = obtener_permisos(Usuario)
         permisos_cliente = obtener_permisos(Cliente)
         permisos_conductor = obtener_permisos(Conductor)
+        permisos_despachador = obtener_permisos(Despachador)
         permisos_admin = obtener_permisos(Admin)
         permisos_vehiculo = obtener_permisos(Vehiculo)
         permisos_ruta = obtener_permisos(Ruta)
