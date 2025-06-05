@@ -30,8 +30,10 @@ def login_view(request):
 def registration(request):
      if request.method == 'POST':
           usuario = request.POST.get('usuario', '')
-          contraseña = request.POST['contraseña']
-          contraseña2 = request.POST['contraseña2']
+          contraseña = request.POST.get('contraseña','')
+          contraseña2 = request.POST.get('contraseña2','')
+          correo = request.POST.get('email','')
+          numero = request.POST.get('telefono','')
           if usuario is None:
                messages.error(request, 'Ingrese un nombre de usuario')
           elif " " in contraseña:
@@ -39,7 +41,7 @@ def registration(request):
           
           elif contraseña == contraseña2:
                try:
-                    user = Usuario.objects.create_user(username=usuario, password=contraseña)
+                    user = Usuario.objects.create_user(username=usuario, password=contraseña,email=correo,telefono=numero)
                     user.save()
                     return redirect('/accounts/login')
                except IntegrityError:
