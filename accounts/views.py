@@ -23,7 +23,7 @@ def login_view(request):
                elif user.rol == 'conductor':
                     return redirect('/conductor/inicio')
                else:
-                    return redirect('/home/main')
+                    return redirect('/home/')
 
      return render(request, 'login.html')
 
