@@ -1,12 +1,13 @@
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .models import (
-    Usuario, Cliente, Conductor, Admin, Vehiculo, Ruta,
-    ConductorPoseeRuta, EstadoEntrega, Paquete, Notificacion
+    Usuario, Cliente, Conductor, Despachador, Admin,
+    Vehiculo, Ruta, ConductorPoseeRuta, EstadoEntrega,
+    Paquete, Notificacion
 )
 from .serializers import (
     UsuarioSerializer, ClienteSerializer,
-    ConductorSerializer, AdminSerializer,
+    ConductorSerializer, DespachadorSerializer, AdminSerializer,
     VehiculoSerializer, RutaSerializer,
     ConductorPoseeRutaSerializer, EstadoEntregaSerializer,
     PaqueteSerializer, NotificacionSerializer
@@ -25,6 +26,11 @@ class ClienteViewSet(ModelViewSet):
 class ConductorViewSet(ModelViewSet):
     queryset = Conductor.objects.all()
     serializer_class = ConductorSerializer
+    #permission_classes = [IsAuthenticated]
+
+class DespachadorViewSet(ModelViewSet):
+    queryset = Despachador.objects.all()
+    serializer_class = DespachadorSerializer
     #permission_classes = [IsAuthenticated]
 
 class AdminViewSet(ModelViewSet):

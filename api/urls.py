@@ -4,6 +4,7 @@ from .views import (
     UsuarioViewSet,
     ClienteViewSet,
     ConductorViewSet,
+    DespachadorViewSet,
     AdminViewSet,
     VehiculoViewSet,
     RutaViewSet,
@@ -17,6 +18,7 @@ router = DefaultRouter()
 router.register('usuarios', UsuarioViewSet)
 router.register('clientes', ClienteViewSet)
 router.register('conductores', ConductorViewSet)
+router.register('despachador', DespachadorViewSet)
 router.register('admins', AdminViewSet)
 router.register('vehiculos', VehiculoViewSet)
 router.register('rutas', RutaViewSet)

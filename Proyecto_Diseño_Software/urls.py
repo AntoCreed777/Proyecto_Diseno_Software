@@ -21,7 +21,7 @@ from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # URL para el panel de administración
-    path('', RedirectView.as_view(url='/api/', permanent=True)),  # Redirige la raíz a /api/
+    path('', RedirectView.as_view(url='/home/', permanent=True)),  # Redirige la raíz a /home
     path('maps/', include('maps.urls')),  # Incluye las URLs de la app de mapas
     path('accounts/', include('accounts.urls')),  # Incluye las URLs de la app de cuentas
     path('api/', include('api.urls')),  # Incluye las URLs de la API de la BD
