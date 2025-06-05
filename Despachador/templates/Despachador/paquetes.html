@@ -21,8 +21,87 @@ Paquetes
         <option value="conductor2">Conductor 2</option>
     </select>
     <button>Buscar</button>
-    <button>Registrar nuevo paquete</button>
+    <button type="button" id="btn-registrar-paquete">Registrar nuevo paquete</button>
 </div>
+
+<!-- Modal para registrar paquete -->
+<div id="modal-paquete" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Registrar nuevo paquete</h2>
+    <form id="form-paquete" method="post" action="{% url 'registrar_paquete_despachador' %}">
+      {% csrf_token %}
+      <label>Nombre del cliente:</label>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <select name="cliente_id" required style="flex: 1;">
+          <option value="">Seleccione un cliente</option>
+          {% for cliente in clientes %}
+            <option value = "{{cliente.id}}">{{cliente.usuario.first_name}} {{cliente.usuario.last_name}}</option>
+          {% endfor %}
+        </select>
+        <button type="button" id="btn-registrar-cliente" style="padding: 8px 12px;">Registrar cliente</button>
+      </div>
+      <label>Nombre del destinatario:</label>
+      <input type="text" name="nombre_destinatario" required><br>
+      <label>Rut del destinatario:</label>
+      <input type="text" name="rut_destinatario" required><br>
+      <label>Teléfono del destinatario:</label>
+      <input type="text" name="telefono_destinatario" required><br>
+      <label>Dirección de envío:</label>
+      <input type="text" name="direccion_envio" required><br>
+      <label>Dimensiones:</label>
+      <input type="text" name="dimensiones" required><br>
+      <label>Peso (kg):</label>
+      <input type="number" step="0.1" name="peso" required><br>
+      <button type="submit">Registrar</button>
+      <button type="button" id="cerrar-modal">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para registrar cliente -->
+<div id="modal-cliente" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Registrar nuevo cliente</h2>
+    <form id="form-cliente" method="post" action="{% url 'registrar_cliente_despachador' %}">
+      {% csrf_token %}
+      <label>Nombre:</label>
+      <input type="text" name="nombre" required>
+      <label>Apellido:</label>
+      <input type="text" name="apellido" required>
+      <Label>Nombre de usuario:</label>
+      <input type="text" name="username" required>
+      <Label>Correo electrónico:</Label>
+      <input type="text" name="correo" required>
+      <label>Dirección:</label>
+      <input type="text" name="direccion" required>
+      <label>Teléfono:</label>
+      <input type="text" name="telefono" required>
+      <label>Contraseña:</label>
+      <input type="password" name="contraseña" required>
+      <label>Confirmar contraseña:</label>
+      <input type="password" name="confirmar_contraseña" required>
+      <div class="modal-buttons">
+        <button type="submit">Registrar</button>
+        <button type="button" id="cerrar-modal-cliente">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('btn-registrar-paquete').onclick = function() {
+  document.getElementById('modal-paquete').style.display = 'block';
+};
+document.getElementById('cerrar-modal').onclick = function() {
+  document.getElementById('modal-paquete').style.display = 'none';
+};
+document.getElementById('btn-registrar-cliente').onclick = function() {
+  document.getElementById('modal-cliente').style.display = 'block';
+};
+document.getElementById('cerrar-modal-cliente').onclick = function() {
+  document.getElementById('modal-cliente').style.display = 'none';
+};
+</script>
 <table>
     <thead>
         <tr>
