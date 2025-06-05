@@ -29,13 +29,16 @@ def login_view(request):
 
 def registration(request):
      if request.method == 'POST':
-          if request.POST.get('usuario', '') is None:
+          usuario = request.POST.get('usuario', '')
+          contraseña = request.POST['contraseña']
+          contraseña2 = request.POST['contraseña2']
+          if usuario is None:
                messages.error(request, 'Ingrese un nombre de usuario')
-
-          elif request.POST['contraseña'] == request.POST['contraseña2']:
+          elif " " in contraseña:
+               messages.error(request,"No se admiten espacios en la contraseña")
+          
+          elif contraseña == contraseña2:
                try:
-                    usuario = request.POST.get('usuario', '')
-                    contraseña = request.POST.get('contraseña', '')
                     user = Usuario.objects.create_user(username=usuario, password=contraseña)
                     user.save()
                     return redirect('/accounts/login')

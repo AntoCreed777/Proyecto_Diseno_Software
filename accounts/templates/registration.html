@@ -18,7 +18,7 @@
 
     <div class="registrarse" id="registrarse">
         <h1>Registrarse</h1>
-        <form method="post">
+        <form class="formulario" method="post">
             {% csrf_token %}
             <div>
                 <hr class="linea_usuario" id="linea_usuario">
@@ -36,6 +36,7 @@
                 <input type="submit" value="Registrarse" class="registrarse_pag">
             </div>
         </form>
+        <a class="login" href="{% url 'login' %}">¿Ya tienes una cuenta?</a>
     </div>
 </body>
 </html>
