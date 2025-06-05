@@ -115,7 +115,66 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
         </tr>
     </thead>
     <tbody>
-    <!--Aquí va el contenido de la tabla -->
+    {% for paquete in paquetes %}
+      <tr>
+          <td>{{ paquete.id }}</td>
+          <td>{{ paquete.fecha_envio }}</td>
+          <td>Por implementar</td>
+          <td>{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}</td>
+          <td>Por implementar</td>
+          <td>Por implementar</td>
+          <td>
+            <button type="button"
+                    class="btn-ver-detalles"
+                    paquete-id="{{ paquete.id }}"
+                    fecha="{{ paquete.fecha_envio }}"
+                    cliente="{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}"
+                    receptor="{{ paquete.nombre_destinatario }}"
+                    direccion="Por implementar"
+                    estado="Por implementar"
+                    peso="{{ paquete.peso }}"
+                    dimensiones="{{ paquete.dimensiones }}"
+                    conductor="Por implementar">
+              Ver detalles
+            </button>
+          </td>
+    {% endfor %}
     </tbody>
 </table>
+<!-- Modal para ver detalles del paquete -->
+<div id="modal-ver-detalles" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Detalles del paquete</h2>
+    <p><strong>ID:</strong> <span id="detalle-id"> </span></p>
+    <p><strong>Fecha de envío:</strong> <span id="detalle-fecha"></span></p>
+    <p><strong>Cliente:</strong> <span id="detalle-cliente"></span></p>
+    <p><strong>Receptor:</strong> <span id="detalle-receptor"></span></p>
+    <p><strong>Dirección de envío:</strong> <span id="detalle-direccion">Por implementar</span></p>
+    <p><strong>Estado del paquete:</strong> <span id="detalle-estado">Por implementar</span></p>
+    <p><strong>Peso:</strong> <span id="detalle-peso"></span> kg</p>
+    <p><strong>Dimensiones:</strong> <span id="detalle-dimensiones"></span></p>
+    <p><strong>Conductor asignado:</strong> <span id="detalle-conductor">Por implementar</span></p>
+    
+    <button type="button" id="cerrar-detalles">Cerrar</button>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
+  btn.onclick = function() {
+    document.getElementById('detalle-id').textContent = btn.getAttribute('paquete-id');
+    document.getElementById('detalle-fecha').textContent = btn.getAttribute('fecha');
+    document.getElementById('detalle-cliente').textContent = btn.getAttribute('cliente');
+    document.getElementById('detalle-receptor').textContent = btn.getAttribute('receptor');
+    document.getElementById('detalle-direccion').textContent = btn.getAttribute('direccion');
+    document.getElementById('detalle-estado').textContent = btn.getAttribute('estado');
+    document.getElementById('detalle-peso').textContent = btn.getAttribute('peso');
+    document.getElementById('detalle-dimensiones').textContent = btn.getAttribute('dimensiones');
+    document.getElementById('detalle-conductor').textContent = btn.getAttribute('conductor');
+    document.getElementById('modal-ver-detalles').style.display = 'block';
+  };
+});
+document.getElementById('cerrar-detalles').onclick = function() {
+  document.getElementById('modal-ver-detalles').style.display = 'none';
+};
+</script>
 {% endblock %}

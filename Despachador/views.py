@@ -2,19 +2,18 @@ from django.http import HttpResponse
 from django.template import Template, Context
 from django.template import loader
 from django.shortcuts import render, redirect
-from api.models import Paquete, Cliente, Usuario
-
-# Create your views here.
+from api.models import Paquete, Cliente, Usuario, Despachador
 
 def inicio(request):
 
     return render(request,'despachador/inicio.html')
 
 def paquetes(request):
-    from api.models import Cliente, Paquete
     clientes = Cliente.objects.select_related('usuario').all()
+    paquetes = Paquete.objects.all().order_by('-id')
     return render(request,'despachador/paquetes.html', {
         'clientes': clientes,
+        'paquetes': paquetes,
         })
 
 def conductores(request):
@@ -54,4 +53,7 @@ def registrar_cliente(request):
             direccion_hogar= request.POST.get('direccion')
         )
         return redirect('paquetes_despachador')
+    return redirect('paquetes_despachador')
+def detalles_paquete(request, paquete_id):
+
     return redirect('paquetes_despachador')
