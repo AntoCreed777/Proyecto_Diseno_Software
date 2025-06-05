@@ -4,13 +4,22 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 ### Modelo MR
+#
+# usuario(@id, password, nombre, apellido, email, telefono, fecha_registro, fecha_ultima_modificacion, rol)
 # 
-# cliente(@id, contraseña, nombre, apellido, correo, telefono, direccion_hogar, fecha_registro, fecha_ultima_modificacion)
+# cliente(id_usuario, direccion_hogar)
+#   - FK: id_usuario -> usuario(id)
 #
-# conductor(@id, contraseña, nombre, apellido, correo, telefono, fecha_registro, fecha_ultima_modificacion, id_vehiculo)
+# conductor(id_usuario, id_vehiculo, id_despachador)
+#   - FK: id_usuario -> usuario(id)
 #   - FK: id_vehiculo -> vehiculo(id)
+#   - fk: id_despachador -> despachador(id)
+# 
+# admin(id_usuario, nivel_acceso)
+#   - FK: id_usuario -> usuario(id)
 #
-# admin(@id, contraseña, nombre, apellido, correo, telefono, nivel_acceso, fecha_registro, fecha_ultima_modificacion)
+# despachador(id_usuario)
+#   - FK: id_usuario -> usuario(id)
 #
 # ruta(@id, ruta_kml, duracion_estimada_minutos, distancia_km, origen, destino, fecha_en_que_se_ejecuto)
 #
@@ -20,14 +29,15 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 #
 # vehiculo(@matricula, marca, año_de_fabricacion)
 #
-# paquete(@id, dimenciones, peso, fecha_envio, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, id_cliente, id_conductor, id_estado)
+# paquete(@id, dimensiones, peso, fecha_envio, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, telefono_destinatario, id_cliente, id_conductor, id_estado, id_despachador)
 #   - FK: id_cliente -> cliente(id)
 #   - FK: id_conductor -> conductor(id)
 #   - FK: id_estado -> estado(id)
+#   - FK: id_despachador -> despachador(id)
 #
 # estado_entrega(@id, estado)
 #
-# notificacion(@id, mensaje, fecha_envio)
+# notificacion(@id, mensaje, fecha_envio, id_cliente)
 #   - FK: id_cliente -> cliente(id)
 #
 ### Fin Modelo MR
@@ -36,18 +46,25 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 # Modelo base de usuario (Es la generalizacion del MER)
 class Usuario(AbstractUser):
     # username, password, email, first_name, last_name ya existen
-    rol = models.CharField(max_length=20, choices=[('cliente', 'Cliente'), ('conductor', 'Conductor'), ('admin', 'Admin')])
+    rol = models.CharField(max_length=20, choices=[('cliente', 'Cliente'), ('conductor', 'Conductor'), ('admin', 'Admin'), ('despachador', 'Despachador')])
+    telefono = models.CharField(max_length=20, blank=True, null=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_ultima_modificacion = models.DateTimeField(auto_now=True)
 
 class Cliente(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    id_usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     direccion_hogar = models.CharField(max_length=255)
 
 class Conductor(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    vehiculo = models.ForeignKey('Vehiculo', on_delete=models.SET_NULL, null=True, blank=True)
+    id_usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    id_vehiculo = models.ForeignKey('Vehiculo', on_delete=models.SET_NULL, null=True, blank=True)
+    id_despachador = models.ForeignKey('Despachador', on_delete=models.SET_NULL, null=True, blank=True)
+
+class Despachador(models.Model):
+    id_usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
 
 class Admin(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    id_usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     nivel_acceso = models.IntegerField(
         validators=[
             MinValueValidator(1),
@@ -72,8 +89,8 @@ class Ruta(models.Model):
 
 # Relación muchos a muchos entre Conductor y Ruta
 class ConductorPoseeRuta(models.Model):
-    conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE)
-    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE)
+    id_conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE)
+    id_ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE)
 
 class EstadoEntrega(models.Model):
     id = models.AutoField(primary_key=True)
@@ -84,16 +101,25 @@ class Paquete(models.Model):
     dimensiones = models.CharField(max_length=100)
     peso = models.FloatField()
     fecha_envio = models.DateTimeField(auto_now_add=True)
-    ubicacion_actual = models.CharField(max_length=255)
-    direccion_envio = models.CharField(max_length=255)
+
+    # Ubicacion actual
+    ubicacion_actual_lat = models.FloatField()
+    ubicacion_actual_lng = models.FloatField()
+
+    # Direccion envio
+    direccion_envio_lat = models.FloatField()
+    direccion_envio_lng = models.FloatField()
+
     nombre_destinatario = models.CharField(max_length=255)
     rut_destinatario = models.CharField(max_length=20)
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='paquetes')
-    conductor = models.ForeignKey(Conductor, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
-    estado = models.ForeignKey(EstadoEntrega, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
+    telefono_destinatario = models.CharField(max_length=20)
+    id_cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='paquetes')
+    id_conductor = models.ForeignKey(Conductor, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
+    id_estado = models.ForeignKey(EstadoEntrega, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
+    id_despachador = models.ForeignKey('Despachador', on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
 
 class Notificacion(models.Model):
     id = models.AutoField(primary_key=True)
     mensaje = models.TextField()
     fecha_envio = models.DateTimeField(auto_now_add=True)
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='notificaciones')
+    id_cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='notificaciones')
