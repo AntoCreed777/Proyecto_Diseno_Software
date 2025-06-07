@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends "Cliente/navegacion/template_inicial.html" %}
+<head>
+    <meta charset="UTF-8">
+    {% block title %}Mis Pedidos{% endblock %}
+</head>
+<body>
+    {% block subtitle %}
+    Mis Pedidos
+    {% endblock %}
+    {% block content %}
+    <ul>
+        <li>Tabla con información de los pedidos del cliente</li>
+        <li>Paquete</li>
+        <li>Estado (En camino, Entregado)</li>
+        <li>Remitente</li>
+        <li>Destinatario</li>
+        <li>peso</li>
+        <li>dimensiones</li>
+    </ul>
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,84 @@
+<head>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            display: flex; /* Layout horizontal: sidebar + contenido */
+            background-color: #f4f4f4;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        aside {
+            background-color:#b4b4b4; /* Color gris para la barra lateral */
+            color: white;
+            width: 120px;
+            padding: 20px;
+        }
+        aside nav a {
+            display: block;
+            padding: 10px;
+            color: white;
+            text-decoration: none;
+        }
+        aside nav a.active {
+            background-color:#868686; /* Destaca el botón activo */
+            font-weight: bold;
+        }
+        main {
+            flex: 1;
+            padding: 10px;
+            background-color: white;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse; /* Une bordes */
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: px;
+            text-align: left;
+        }
+        th {
+            background-color: #eee; /* Fondo gris para encabezados */
+        }
+        .filter-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-box input, .filter-box select {
+            padding: 5px;
+            width: 200px;
+        }
+    </style>
+
+    <title>
+        {% block title %} {% endblock %}
+    </title>
+</head>
+<body>
+    <aside>
+        <nav>
+            <a href="{% url 'inicio' %}" class ="{%if request.path == '/cliente/inicio/'%} active{%endif%}"> Inicio </a>
+            <a href="{% url 'mis_pedidos' %}" class ="{%if request.path == '/cliente/mis_pedidos/'%} active{%endif%}"> Mis_Pedidos </a>
+            <a href="{% url 'ayuda' %}" class ="{%if request.path == '/cliente/ayuda/'%} active{%endif%}"> Ayuda </a>
+        </nav>
+    </aside>
+    <main>
+        <header>
+            <h1>{% block subtitle %}{% endblock %}</h1>
+            <div>
+                <span>{{ user.username }}</span>
+                <button>Cerrar sesión</button>
+            </div>
+        </header>
+    {% block content %}
+    {% endblock %}
+    </main>
+</body>
