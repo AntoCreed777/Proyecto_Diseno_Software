@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
+from phonenumber_field.modelfields import PhoneNumberField
 
 ### Modelo MR
 #
@@ -46,7 +47,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 class Usuario(AbstractUser):
     # username, password, email, first_name, last_name ya existen
     rol = models.CharField(max_length=20, choices=[('cliente', 'Cliente'), ('conductor', 'Conductor'), ('admin', 'Admin'), ('despachador', 'Despachador')])
-    telefono = models.CharField(max_length=20, blank=True, null=True)
+    telefono = PhoneNumberField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_ultima_modificacion = models.DateTimeField(auto_now=True)
 

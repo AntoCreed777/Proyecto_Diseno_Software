@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'maps',# App de mapas usando OpenStreetMap
     'accounts',
     'rest_framework',  # Django REST framework
+    'phonenumber_field',    # Para manejar numeros telefonicos
     'api',
     'home',
     'Conductor',
