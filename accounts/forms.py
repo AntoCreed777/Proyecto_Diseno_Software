@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from api.models import Usuario, Cliente
 from django.contrib.auth.models import Group
 from django.db import transaction
@@ -53,3 +53,12 @@ class RegistroClienteForm(UserCreationForm):
                     direccion_hogar=self.cleaned_data['direccion_hogar'].strip()
                 )
         return usuario
+
+class CustomLoginForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, placeholder in {
+            'username': 'Nombre de usuario',
+            'password': 'Contraseña',
+        }.items():
+            self.fields[field_name].widget.attrs.update({'class': 'form-control', 'placeholder': placeholder})

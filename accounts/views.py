@@ -1,9 +1,6 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from api.models import Usuario     # Usuario Custom de Django
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import login
 from django.contrib import messages
-from django.db import IntegrityError
 from .tokens import account_activation_token
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
@@ -11,9 +8,7 @@ from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
-from api.serializers import UsuarioSerializer, ClienteSerializer
-from django.db import transaction
-from .forms import RegistroClienteForm
+from .forms import RegistroClienteForm, CustomLoginForm
 
 #Activacion del correo
 def activate(request, uidb64, token):
@@ -54,25 +49,26 @@ def activarEmail(request,user,correo):
 
 def login_view(request):
      if request.method == 'POST':
-          usuario = request.POST.get('usuario', '')
-          contraseña = request.POST.get('contraseña', '')
-          user = authenticate(request, username=usuario, password=contraseña)
-          if user is None:
-               messages.error(request, 'Usuario o contraseña son incorrectos')
-          elif not user.is_active:
-               messages.error(request, 'Por favor, para continuar debe activar su cuenta, ingresando a su correo electronico')
-          else:
+          form = CustomLoginForm(request, data=request.POST)
+          if form.is_valid():
+               user = form.get_user()
+
+               if not user.is_active:
+                    messages.error(request, "Por favor, para continuar debe activar su cuenta, ingresando a su correo electrónico")
+                    return render(request, 'login.html', {'form': form})
+
                login(request, user)
-               
-               # Redirigir según el rol del usuario
-               if user.rol == 'admin':  
+
+               if user.rol == 'admin':
                     return redirect('/admin/dashboard')
                elif user.rol == 'conductor':
                     return redirect('/conductor/inicio')
                else:
                     return redirect('/home/')
+     else:
+          form = CustomLoginForm()
 
-     return render(request, 'login.html')
+     return render(request, 'login.html', {'form': form})
 
 def registration(request):
      if request.method == 'POST':
