@@ -50,6 +50,7 @@ class Usuario(AbstractUser):
     telefono = PhoneNumberField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_ultima_modificacion = models.DateTimeField(auto_now=True)
+    email_verified = models.BooleanField(default=False, verbose_name="Correo verificado")
 
 class Cliente(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)

@@ -20,7 +20,7 @@ def activate(request, uidb64, token):
         user = None
 
     if user is not None and account_activation_token.check_token(user, token):
-        user.is_active = True
+        user.email_verified = True
         user.save()
         messages.success(request, 'Gracias, por activar su cuenta.')
         return redirect('login')
@@ -67,10 +67,7 @@ def registration(request):
      if request.method == 'POST':
           form = RegistroClienteForm(request.POST)
           if form.is_valid():
-               usuario = form.save(commit=False)  # Procesar sin guardar para manipular los datos
-               usuario.is_active = False  # Desactiva la cuenta hasta que se confirme el correo
-               usuario.save()
-               
+               usuario = form.save(commit=True)
                activarEmail(request, usuario, usuario.email)
                
                messages.success(request, 'Registro exitoso. Por favor, verifica tu correo para activar tu cuenta.')
