@@ -42,21 +42,14 @@ def activarEmail(request,user,correo):
         'protocolo': 'https' if request.is_secure() else 'http'
     })
      email = EmailMessage(mail_subject,message,to=[correo])
-     if email.send():
-          messages.success(request,f"Por favor {user} verifique su correo electronico {correo}")
-     else:
-          messages.success(request,"Ocurrio un error")
+     if not email.send():
+          messages.success(request,"Ocurrio un error al enviar el correo")
 
 def login_view(request):
      if request.method == 'POST':
           form = CustomLoginForm(request, data=request.POST)
           if form.is_valid():
                user = form.get_user()
-
-               if not user.is_active:
-                    messages.error(request, "Por favor, para continuar debe activar su cuenta, ingresando a su correo electrónico")
-                    return render(request, 'login.html', {'form': form})
-
                login(request, user)
 
                if user.rol == 'admin':
@@ -74,8 +67,13 @@ def registration(request):
      if request.method == 'POST':
           form = RegistroClienteForm(request.POST)
           if form.is_valid():
-               form.save()
-               messages.success(request, 'Registro exitoso. Por favor, inicie sesión.')
+               usuario = form.save(commit=False)  # Procesar sin guardar para manipular los datos
+               usuario.is_active = False  # Desactiva la cuenta hasta que se confirme el correo
+               usuario.save()
+               
+               activarEmail(request, usuario, usuario.email)
+               
+               messages.success(request, 'Registro exitoso. Por favor, verifica tu correo para activar tu cuenta.')
                return redirect('/accounts/login')
      else:
           form = RegistroClienteForm()

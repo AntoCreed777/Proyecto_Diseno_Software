@@ -62,3 +62,10 @@ class CustomLoginForm(AuthenticationForm):
             'password': 'Contraseña',
         }.items():
             self.fields[field_name].widget.attrs.update({'class': 'form-control', 'placeholder': placeholder})
+    
+    def confirm_login_allowed(self, user):
+        if not user.is_active:
+            raise forms.ValidationError(
+                "Tu cuenta no está activa. Por favor, verifica tu correo para activarla.",
+                code='inactive',
+            )
