@@ -10,10 +10,9 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 # cliente(id_usuario, direccion_hogar)
 #   - FK: id_usuario -> usuario(id)
 #
-# conductor(id_usuario, id_vehiculo, id_despachador)
+# conductor(id_usuario, estado, id_vehiculo, id_despachador)
 #   - FK: id_usuario -> usuario(id)
 #   - FK: id_vehiculo -> vehiculo(id)
-#   - fk: id_despachador -> despachador(id)
 # 
 # admin(id_usuario, nivel_acceso)
 #   - FK: id_usuario -> usuario(id)
@@ -29,7 +28,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 #
 # vehiculo(@matricula, marca, año_de_fabricacion)
 #
-# paquete(@id, dimensiones, peso, fecha_envio, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, telefono_destinatario, id_cliente, id_conductor, id_estado, id_despachador)
+# paquete(@id, dimensiones, peso, fecha_registro, fecha_entrega, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, telefono_destinatario, id_cliente, id_conductor, id_estado, id_despachador)
 #   - FK: id_cliente -> cliente(id)
 #   - FK: id_conductor -> conductor(id)
 #   - FK: id_estado -> estado(id)
@@ -57,8 +56,8 @@ class Cliente(models.Model):
 
 class Conductor(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    estado = models.CharField(max_length=20, choices=[('en_ruta', 'En_Ruta'), ('disponible', 'Disponible'), ('no disponible', 'No Disponible')])
     vehiculo = models.ForeignKey('Vehiculo', on_delete=models.SET_NULL, null=True, blank=True)
-    despachador = models.ForeignKey('Despachador', on_delete=models.SET_NULL, null=True, blank=True)
 
 class Despachador(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
@@ -100,7 +99,8 @@ class Paquete(models.Model):
     id = models.AutoField(primary_key=True)
     dimensiones = models.CharField(max_length=100)
     peso = models.FloatField()
-    fecha_envio = models.DateTimeField(auto_now_add=True)
+    fecha_registro = models.DateTimeField(auto_now_add=True)
+    fecha_entrega = models.DateTimeField(auto_now_add=True)
 
     # Ubicacion actual
     ubicacion_actual_lat = models.FloatField()

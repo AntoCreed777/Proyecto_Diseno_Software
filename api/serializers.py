@@ -60,10 +60,11 @@ class ClienteSerializer(serializers.ModelSerializer):
 
 class ConductorSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer()
+    estado = serializers.ChoiceField(choices=Conductor._meta.get_field('estado').choices, read_only=True)
 
     class Meta:
         model = Conductor
-        fields = ['id', 'usuario', 'id_vehiculo', 'id_despachador']
+        fields = ['id', 'usuario', 'vehiculo', 'estado']
 
     def create(self, validated_data):
         usuario_data = validated_data.pop('usuario')
@@ -76,7 +77,7 @@ class ConductorSerializer(serializers.ModelSerializer):
             grupo = Group.objects.get(name='Conductor')
             usuario.groups.add(grupo)
 
-            conductor = Conductor.objects.create(usuario=usuario, **validated_data)
+            conductor = Conductor.objects.create(usuario=usuario, estado='disponible', **validated_data)
             return conductor
 
 class DespachadorSerializer(serializers.ModelSerializer):
