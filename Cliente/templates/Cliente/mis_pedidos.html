@@ -1,0 +1,41 @@
+{% extends "Cliente/navegacion/template_inicial.html" %}
+
+    {% block title %}Mis Pedidos{% endblock %}
+
+    {% block subtitle %}
+    Mis Pedidos
+    {% endblock %}
+    {% block content %}
+    <ul>
+        <li>Tabla con información de los pedidos del cliente</li>
+        <li>Paquete</li>
+        <li>Estado (En camino, Entregado)</li>
+        <li>Remitente</li>
+        <li>Destinatario</li>
+        <li>peso</li>
+        <li>dimensiones</li>
+    </ul>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Paquete</th>
+            <th>Estado</th>
+            <th>Remitente</th>
+            <th>Destinatario</th>
+            <th>Peso</th>
+            <th>Dimensiones</th>
+        </tr>
+        </thead>
+        <tbody>
+       <tr>
+            <td>Telefono</td>
+           <td>Pendiente</td>
+           <td>Manuel</td>
+           <td>Pedro</td>
+           <td>50kg</td>
+           <td>10x10cm</td>
+       </tr>
+        </tbody>
+    </table>
+    {% endblock %}

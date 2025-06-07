@@ -29,4 +29,5 @@ urlpatterns = [
     path('conductor/', include('Conductor.urls')), # Incluye URLs de la página conductor
     path('administrador/', include('Administrador.urls')), # Incluye URLs de la página administrador
     path('despachador/', include('Despachador.urls')),  # Incluye URLs de la página despachador
+    path('cliente/', include('Cliente.urls')), # Incluye URLs de la página cliente
 ]

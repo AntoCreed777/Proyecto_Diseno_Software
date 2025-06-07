@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'Conductor',
     'Administrador',
     'Despachador',
+    'Cliente.apps.ClienteConfig',
 ]
 
 AUTH_USER_MODEL = 'api.Usuario'
