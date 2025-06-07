@@ -7,6 +7,7 @@ from .models import (
     Paquete, Notificacion
 )
 from django.contrib.auth.models import Group
+from .exceptions import GroupNotConfiguredError
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -35,6 +36,13 @@ class UsuarioSerializer(serializers.ModelSerializer):
         usuario.rol = rol
         usuario.set_password(password)
         usuario.save()
+
+        try:
+            grupo = Group.objects.get(name=rol)
+        except Group.DoesNotExist:
+            raise GroupNotConfiguredError(f"El grupo '{rol}' no está configurado en la base de datos.")
+        usuario.groups.add(grupo)
+        
         return usuario
 
 class ClienteSerializer(serializers.ModelSerializer):
@@ -52,15 +60,7 @@ class ClienteSerializer(serializers.ModelSerializer):
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
-            try:
-                grupo = Group.objects.get(name='Cliente')
-            except Group.DoesNotExist:
-                raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
-
-            usuario.groups.add(grupo)
-
-            cliente = Cliente.objects.create(usuario=usuario, **validated_data)
-            return cliente
+            return Cliente.objects.create(usuario=usuario, **validated_data)
 
 class ConductorSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer()
@@ -78,15 +78,7 @@ class ConductorSerializer(serializers.ModelSerializer):
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
-            try:
-                grupo = Group.objects.get(name='Cliente')
-            except Group.DoesNotExist:
-                raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
-
-            usuario.groups.add(grupo)
-
-            conductor = Conductor.objects.create(usuario=usuario, estado='disponible', **validated_data)
-            return conductor
+            return Conductor.objects.create(usuario=usuario, estado='disponible', **validated_data)
 
 class DespachadorSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer()
@@ -102,15 +94,7 @@ class DespachadorSerializer(serializers.ModelSerializer):
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
-            try:
-                grupo = Group.objects.get(name='Cliente')
-            except Group.DoesNotExist:
-                raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
-
-            usuario.groups.add(grupo)
-            
-            despachador = Despachador.objects.create(usuario=usuario, **validated_data)
-            return despachador
+            return Despachador.objects.create(usuario=usuario, **validated_data)
 
 class AdminSerializer(serializers.ModelSerializer):
     usuario = UsuarioSerializer()
@@ -132,15 +116,7 @@ class AdminSerializer(serializers.ModelSerializer):
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
-            try:
-                grupo = Group.objects.get(name='Cliente')
-            except Group.DoesNotExist:
-                raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
-
-            usuario.groups.add(grupo)
-
-            admin = Admin.objects.create(usuario=usuario, **validated_data)
-            return admin
+            return Admin.objects.create(usuario=usuario, **validated_data)
 
 class VehiculoSerializer(serializers.ModelSerializer):
     class Meta:

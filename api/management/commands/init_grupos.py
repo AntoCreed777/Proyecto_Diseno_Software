@@ -12,10 +12,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Crear grupos (una vez)
-        cliente_group, _ = Group.objects.get_or_create(name='Cliente')
-        conductor_group, _ = Group.objects.get_or_create(name='Conductor')
-        despachador_group, _ = Group.objects.get_or_create(name='Despachador')
-        admin_group, _ = Group.objects.get_or_create(name='Admin')
+        cliente_group, _ = Group.objects.get_or_create(name='cliente')
+        conductor_group, _ = Group.objects.get_or_create(name='conductor')
+        despachador_group, _ = Group.objects.get_or_create(name='despachador')
+        admin_group, _ = Group.objects.get_or_create(name='admin')
 
         def obtener_permisos(modelo):
             """
