@@ -52,7 +52,11 @@ class ClienteSerializer(serializers.ModelSerializer):
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
-            grupo = Group.objects.get(name='Cliente')
+            try:
+                grupo = Group.objects.get(name='Cliente')
+            except Group.DoesNotExist:
+                raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
+
             usuario.groups.add(grupo)
 
             cliente = Cliente.objects.create(usuario=usuario, **validated_data)
@@ -74,7 +78,11 @@ class ConductorSerializer(serializers.ModelSerializer):
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
-            grupo = Group.objects.get(name='Conductor')
+            try:
+                grupo = Group.objects.get(name='Cliente')
+            except Group.DoesNotExist:
+                raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
+
             usuario.groups.add(grupo)
 
             conductor = Conductor.objects.create(usuario=usuario, estado='disponible', **validated_data)
@@ -94,7 +102,11 @@ class DespachadorSerializer(serializers.ModelSerializer):
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
-            grupo = Group.objects.get(name='Despachador')
+            try:
+                grupo = Group.objects.get(name='Cliente')
+            except Group.DoesNotExist:
+                raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
+
             usuario.groups.add(grupo)
             
             despachador = Despachador.objects.create(usuario=usuario, **validated_data)
@@ -120,7 +132,11 @@ class AdminSerializer(serializers.ModelSerializer):
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
-            grupo = Group.objects.get(name='Admin')
+            try:
+                grupo = Group.objects.get(name='Cliente')
+            except Group.DoesNotExist:
+                raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
+
             usuario.groups.add(grupo)
 
             admin = Admin.objects.create(usuario=usuario, **validated_data)

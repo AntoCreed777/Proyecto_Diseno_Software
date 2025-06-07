@@ -53,7 +53,7 @@ class Usuario(AbstractUser):
 
 class Cliente(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    direccion_hogar = models.CharField(max_length=255)
+    direccion_hogar = models.CharField(max_length=255, blank=True, null=True)
 
 class Conductor(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
