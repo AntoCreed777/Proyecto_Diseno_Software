@@ -1,6 +1,5 @@
-from http.client import HTTPResponse
-
 from django.shortcuts import render
+from api.models import Cliente
 
 # Create your views here.
 def inicio(request):
@@ -8,8 +7,13 @@ def inicio(request):
     return render(request,'Cliente/inicio.html')
 
 def mis_pedidos(request):
+    if hasattr(request.user, 'cliente'):
+        clientes = Cliente.objects.all()
+    else:
+        clientes = "No hay clientes"
 
-    return render(request,'Cliente/mis_pedidos.html')
+    print(clientes)
+    return render(request, 'Cliente/mis_pedidos.html')
 
 def ayuda(request):
 
