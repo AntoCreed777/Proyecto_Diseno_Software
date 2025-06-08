@@ -41,6 +41,27 @@ async function obtenerCoordenadas(direccion) {
     }
 }
 
+async function obtenerDireccion(latitud, longitud) {
+    const url = `https://nominatim.openstreetmap.org/reverse?lat=${encodeURIComponent(latitud)}&lon=${encodeURIComponent(longitud)}&format=json`
+
+    try {
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data) {
+            const direccion = data.display_name
+
+            console.log(`Direccion de Latitud ${latitud}", Longitud ${longitud}: "${direccion}"`);
+            return direccion;
+        } else {
+            console.log("No se encontraron resultados para la direccion");
+            return null;
+        }
+    } catch (error) {
+        console.error("Error al obtener la direccion:", error);
+    }
+}
+
 function generarColorAleatorio() {
     const randomColor = Math.floor(Math.random() * 16777215).toString(16);
     return `#${randomColor}`;
