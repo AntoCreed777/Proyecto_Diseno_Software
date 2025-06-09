@@ -12,11 +12,20 @@ from .serializers import (
     ConductorPoseeRutaSerializer, EstadoEntregaSerializer,
     PaqueteSerializer, NotificacionSerializer
 )
+from rest_framework.response import Response
+from rest_framework import status
 
 class UsuarioViewSet(ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     #permission_classes = [IsAuthenticated]
+
+    
+    def create(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "No puedes crear usuarios directamente desde esta API."}, 
+            status=status.HTTP_403_FORBIDDEN
+        )
 
 class ClienteViewSet(ModelViewSet):
     queryset = Cliente.objects.all()

@@ -1,41 +1,37 @@
-{% load static %}
+{% load static crispy_forms_tags %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="{% static 'registro.css' %}">
-    <title>Registrarse</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-image: url("{% static 'img/fondo.jpg' %}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex; /* Para centrar contenido */
+            justify-content: center; /* Centrar horizontalmente */
+            align-items: center; /* Centrar verticalmente */
+        }
+    </style>
+    <title>Registro</title>
 </head>
-<body class="imagen_fondo">
-    {% if messages %}
-    {% for message in messages %}
-    <div>
-      {{ message }}
-    </div>
-    {% endfor %}
-    {% endif %}
-
-
-    <div class="registrarse" id="registrarse">
-        <h1>Registrarse</h1>
-        <form method="post">
-            {% csrf_token %}
-            <div>
-                <hr class="linea_usuario" id="linea_usuario">
-                <input type="text" name="usuario" class="input_usuario" placeholder="Usuario" required>
+<body>
+    <div class="container">
+        <div class="card mx-auto" style="max-width: 500px;">
+            <div class="card-body">
+                <h3 class="card-title text-center">Regístrate</h3>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <button type="submit" class="btn btn-primary w-100 mt-3">Registrarse</button>
+                </form>
+                <div class="d-flex justify-content-center mt-5">
+                    <a href="{% url 'login' %}" class="btn btn-success">Regresar al Login</a>
+                </div>
             </div>
-            <div>
-                <hr class="linea_contraseña" id="linea_contraseña">
-                <input type="password" name="contraseña" class="input_contraseña" placeholder="contraseña">
-            </div>
-            <div>
-                <hr class="linea_contraseña2" id="linea_contraseña2">
-                <input type="password" name="contraseña2" class="input_contraseña2" placeholder="contraseña2">
-            </div>
-            <div>
-                <input type="submit" value="Registrarse" class="registrarse_pag">
-            </div>
-        </form>
+        </div>
     </div>
 </body>
 </html>

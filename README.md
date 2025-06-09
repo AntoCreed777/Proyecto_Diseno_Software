@@ -48,6 +48,14 @@ python3 manage.py migrate
 ```
 Esto preparará la base de datos para el correcto funcionamiento del proyecto.
 
+## Inicio de los grupos de Usuarios
+
+Ejecuta el siguiente comando:
+
+```bash
+python3 manage.py init_grupos
+```
+
 ## Ejecución del proyecto
 
 Para iniciar el servidor de desarrollo de Django, ejecuta:

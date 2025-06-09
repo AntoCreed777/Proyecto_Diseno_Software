@@ -1,5 +1,10 @@
 asgiref==3.8.1
+crispy-bootstrap4==2024.10
 Django==5.2.1
+django-crispy-forms==2.4
+django-phonenumber-field==8.1.0
 djangorestframework==3.16.0
+phonenumbers==9.0.6
+six==1.17.0
 sqlparse==0.5.3
 typing_extensions==4.13.2
