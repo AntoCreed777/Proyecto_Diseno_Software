@@ -25,9 +25,22 @@ Paquetes
 </div>
 
 <!-- Modal para registrar paquete -->
-<div id="modal-paquete" class="modal-paquete">
+<div id="modal-paquete" class="modal-paquete" {% if show_paquete_modal %}style="display:block"{% endif %}>
   <div class="modal-paquete-content">
     <h2>Registrar nuevo paquete</h2>
+    <div id="paquete-messages">
+      {% if errors_paquete %}
+        {% for field, errors in errors_paquete.items %}
+          {% for error in errors %}
+            <div class="error-box">
+              <strong>Error en {{ field }}:</strong>
+              <br>
+              {{ error }}
+            </div>
+          {% endfor %}
+        {% endfor %}
+      {% endif %}
+    </div>
     <form id="form-paquete" method="post" action="{% url 'registrar_paquete_despachador' %}">
       {% csrf_token %}
       <label>Nombre del cliente:</label>
@@ -59,9 +72,20 @@ Paquetes
 </div>
 
 <!-- Modal para registrar cliente -->
-<div id="modal-cliente" class="modal-paquete">
+<div id="modal-cliente" class="modal-paquete" {% if show_cliente_modal %}style="display:block"{% endif %}>
   <div class="modal-paquete-content">
     <h2>Registrar nuevo cliente</h2>
+    <div id="cliente-messages">
+      {% if messages %}
+        {% for mensaje in messages %}
+          <div class="error-box">
+            <strong>Error al registrar cliente:</strong>
+            <br>
+            {{ mensaje }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
     <form id="form-cliente" method="post" action="{% url 'registrar_cliente_despachador' %}">
       {% csrf_token %}
       <label>Nombre:</label>
@@ -94,12 +118,23 @@ document.getElementById('btn-registrar-paquete').onclick = function() {
 };
 document.getElementById('cerrar-modal').onclick = function() {
   document.getElementById('modal-paquete').style.display = 'none';
+  // Limpiar mensajes de error
+  document.getElementById('paquete-messages').innerHTML = '';
+  if (window.location.pathname !== '/despachador/paquetes/') {
+    window.history.replaceState({}, '', '/despachador/paquetes/');
+  }
 };
 document.getElementById('btn-registrar-cliente').onclick = function() {
+  
   document.getElementById('modal-cliente').style.display = 'block';
 };
 document.getElementById('cerrar-modal-cliente').onclick = function() {
   document.getElementById('modal-cliente').style.display = 'none';
+  // Limpiar mensajes de error
+  document.getElementById('cliente-messages').innerHTML = '';
+  if (window.location.pathname !== '/despachador/paquetes/') {
+    window.history.replaceState({}, '', '/despachador/paquetes/');
+  }
 };
 </script>
 <table>
@@ -119,25 +154,28 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
       <tr>
           <td>{{ paquete.id }}</td>
           <td>{{ paquete.fecha_envio }}</td>
-          <td>Por implementar</td>
+          <td>{{ paquete.estado }}</td>
           <td>{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}</td>
-          <td>Por implementar</td>
-          <td>Por implementar</td>
+          <td>{{ paquete.direccion_envio}}</td>
+          <td>{{ paquete.conductor }}</td>
           <td>
             <button type="button"
                     class="btn-ver-detalles"
                     paquete-id="{{ paquete.id }}"
                     fecha="{{ paquete.fecha_envio }}"
                     cliente="{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}"
-                    receptor="{{ paquete.nombre_destinatario }}"
-                    direccion="Por implementar"
-                    estado="Por implementar"
+                    nombre-receptor="{{ paquete.nombre_destinatario }}"
+                    rut-receptor="{{ paquete.rut_destinatario }}"
+                    telefono-receptor="{{ paquete.telefono_destinatario }}"
+                    direccion="{{ paquete.direccion_envio }}"
+                    estado="{{ paquete.estado }}"
                     peso="{{ paquete.peso }}"
                     dimensiones="{{ paquete.dimensiones }}"
-                    conductor="Por implementar">
+                    conductor="{{ paquete.conductor.usuario.first_name }} {{ paquete.conductor.usuario.last_name }}">
               Ver detalles
             </button>
           </td>
+        </tr>
     {% endfor %}
     </tbody>
 </table>
@@ -148,12 +186,14 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
     <p><strong>ID:</strong> <span id="detalle-id"> </span></p>
     <p><strong>Fecha de envío:</strong> <span id="detalle-fecha"></span></p>
     <p><strong>Cliente:</strong> <span id="detalle-cliente"></span></p>
-    <p><strong>Receptor:</strong> <span id="detalle-receptor"></span></p>
-    <p><strong>Dirección de envío:</strong> <span id="detalle-direccion">Por implementar</span></p>
-    <p><strong>Estado del paquete:</strong> <span id="detalle-estado">Por implementar</span></p>
+    <p><strong>Nombre receptor:</strong> <span id="detalle-nombre-receptor"></span></p>
+    <p><strong>Rut del receptor:</strong> <span id="detalle-rut-receptor"></span></p>
+    <p><strong>Teléfono del receptor:</strong> <span id="detalle-telefono-receptor"></span></p>
+    <p><strong>Dirección de envío:</strong> <span id="detalle-direccion"></span></p>
+    <p><strong>Estado del paquete:</strong> <span id="detalle-estado"></span></p>
     <p><strong>Peso:</strong> <span id="detalle-peso"></span> kg</p>
     <p><strong>Dimensiones:</strong> <span id="detalle-dimensiones"></span></p>
-    <p><strong>Conductor asignado:</strong> <span id="detalle-conductor">Por implementar</span></p>
+    <p><strong>Conductor asignado:</strong> <span id="detalle-conductor"></span></p>
     
     <button type="button" id="cerrar-detalles">Cerrar</button>
   </div>
@@ -164,7 +204,9 @@ document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
     document.getElementById('detalle-id').textContent = btn.getAttribute('paquete-id');
     document.getElementById('detalle-fecha').textContent = btn.getAttribute('fecha');
     document.getElementById('detalle-cliente').textContent = btn.getAttribute('cliente');
-    document.getElementById('detalle-receptor').textContent = btn.getAttribute('receptor');
+    document.getElementById('detalle-nombre-receptor').textContent = btn.getAttribute('nombre-receptor');
+    document.getElementById('detalle-rut-receptor').textContent = btn.getAttribute('rut-receptor');
+    document.getElementById('detalle-telefono-receptor').textContent = btn.getAttribute('telefono-receptor');
     document.getElementById('detalle-direccion').textContent = btn.getAttribute('direccion');
     document.getElementById('detalle-estado').textContent = btn.getAttribute('estado');
     document.getElementById('detalle-peso').textContent = btn.getAttribute('peso');

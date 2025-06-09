@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import inicio, paquetes, conductores, registrar_paquete, registrar_cliente, detalles_paquete
+from .views import inicio, paquetes, conductores, registrar_paquete, registrar_cliente
 
 urlpatterns = [
     path('inicio/', inicio, name = 'inicio_despachador'),
@@ -7,5 +7,4 @@ urlpatterns = [
     path('conductores/', conductores, name = 'conductores_despachador'),
     path('registrar-paquete/', registrar_paquete, name='registrar_paquete_despachador'),
     path('registrar-cliente/', registrar_cliente, name='registrar_cliente_despachador'),
-    path('detalles-paquete/', detalles_paquete, name='detalles_paquete_despachador'),
 ]
