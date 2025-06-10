@@ -5,24 +5,24 @@ Paquetes
 {% endblock %}
 
 {% block content %}
-<div class="filter-box">
-    <input type="int" placeholder="ID del paquete">
-    <input type="date" placeholder="Fecha">
-    <select>
+<form method="get" id="filtro-paquetes" class="filter-box">
+    <input type="number" name="id" placeholder="ID del paquete" value="{{ request.GET.id }}">
+    <input type="date" name="fecha" placeholder="Fecha" value="{{ request.GET.fecha }}">
+    <select name="estado">
         <option value="">Todos los estados</option>
-        <option value="sin asignar">Sin asignar</option>
-        <option value="asignados">Asignado</option>
-        <option value="en ruta">En ruta</option>
-        <option value="recibidos">Recibidos</option>
-    </select>        
-    <select>
-        <option value="">Todos los conductores</option>
-        <option value="conductor1">Conductor 1</option>
-        <option value="conductor2">Conductor 2</option>
+        {% for estado in estados %}
+          <option value="{{ estado.estado }}" {% if request.GET.estado == estado.estado %}selected{% endif %}>{{ estado.estado }}</option>
+        {% endfor %}
     </select>
-    <button>Buscar</button>
+    <select name="conductor">
+        <option value="">Todos los conductores</option>
+        {% for conductor in conductores %}
+          <option value="{{ conductor.id }}" {% if request.GET.conductor == conductor.id|stringformat:"s" %}selected{% endif %}>{{ conductor.usuario.first_name }} {{ conductor.usuario.last_name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Buscar</button>
     <button type="button" id="btn-registrar-paquete">Registrar nuevo paquete</button>
-</div>
+</form>
 
 <!-- Modal para registrar paquete -->
 <div id="modal-paquete" class="modal-paquete" {% if show_paquete_modal %}style="display:block"{% endif %}>
@@ -111,7 +111,6 @@ Paquetes
     </form>
   </div>
 </div>
-
 <script>
 document.getElementById('btn-registrar-paquete').onclick = function() {
   document.getElementById('modal-paquete').style.display = 'block';
@@ -153,11 +152,11 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
     {% for paquete in paquetes %}
       <tr>
           <td>{{ paquete.id }}</td>
-          <td>{{ paquete.fecha_envio }}</td>
-          <td>{{ paquete.estado }}</td>
+          <td>{{ paquete.fecha_registro }}</td>
+          <td>{{ paquete.estado.estado }}</td>
           <td>{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}</td>
           <td>{{ paquete.direccion_envio}}</td>
-          <td>{{ paquete.conductor }}</td>
+          <td>{{ paquete.conductor.usuario.first_name }} {{paquete.conductor.usuario.last_name}}</td>
           <td>
             <button type="button"
                     class="btn-ver-detalles"
@@ -168,7 +167,7 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
                     rut-receptor="{{ paquete.rut_destinatario }}"
                     telefono-receptor="{{ paquete.telefono_destinatario }}"
                     direccion="{{ paquete.direccion_envio }}"
-                    estado="{{ paquete.estado }}"
+                    estado="{{ paquete.estado.estado }}"
                     peso="{{ paquete.peso }}"
                     dimensiones="{{ paquete.dimensiones }}"
                     conductor="{{ paquete.conductor.usuario.first_name }} {{ paquete.conductor.usuario.last_name }}">
@@ -190,12 +189,58 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
     <p><strong>Rut del receptor:</strong> <span id="detalle-rut-receptor"></span></p>
     <p><strong>Teléfono del receptor:</strong> <span id="detalle-telefono-receptor"></span></p>
     <p><strong>Dirección de envío:</strong> <span id="detalle-direccion"></span></p>
-    <p><strong>Estado del paquete:</strong> <span id="detalle-estado"></span></p>
+    <p><strong>Estado del paquete:</strong> <span id="detalle-estado"></span>
+    <button type="button" id="btn-cambiar-estado" style="margin-left:10px;">Cambiar estado</button>
+    </p>
     <p><strong>Peso:</strong> <span id="detalle-peso"></span> kg</p>
     <p><strong>Dimensiones:</strong> <span id="detalle-dimensiones"></span></p>
-    <p><strong>Conductor asignado:</strong> <span id="detalle-conductor"></span></p>
+    <p><strong>Conductor asignado:</strong> <span id="detalle-conductor"></span>
+    <button type="button" id="btn-asignar-conductor" style="margin-left:10px;">Asignar conductor</button>
+    </p>
     
     <button type="button" id="cerrar-detalles">Cerrar</button>
+  </div>
+</div>
+<!-- Modal para asignar conductor -->
+<div id="modal-asignar-conductor" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Asignar conductor</h2>
+    <form id="form-asignar-conductor" method="post" action="{% url 'asignar_conductor_despachador' %}">
+      {% csrf_token %}
+      <input type="hidden" name="paquete_id" id="asignar-paquete-id">
+      <label>Seleccione un conductor:</label>
+      <select name="conductor_id" required>
+        <option value="">Seleccione un conductor</option>
+        {% for conductor in conductores %}
+          <option value="{{ conductor.id }}">{{ conductor.usuario.first_name }} {{ conductor.usuario.last_name }} - {{ conductor.estado}}</option>
+        {% endfor %}
+      </select>
+      <div class="modal-buttons">
+        <button type="submit">Asignar</button>
+        <button type="button" id="cerrar-modal-asignar">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Modal para cambiar estado -->
+<div id="modal-cambiar-estado" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Cambiar estado del paquete</h2>
+    <form id="form-cambiar-estado" method="post" action="{% url 'cambiar_estado_paquete' %}">
+      {% csrf_token %}
+      <input type="hidden" name="paquete_id" id="cambiar-estado-paquete-id">
+      <label>Seleccione nuevo estado:</label>
+      <select name="estado_id" required>
+        <option value="">Seleccione un estado</option>
+        {% for estado in estados %}
+          <option value="{{ estado.id }}">{{ estado.estado }}</option>
+        {% endfor %}
+      </select>
+      <div class="modal-buttons">
+        <button type="submit">Cambiar</button>
+        <button type="button" id="cerrar-modal-cambiar-estado">Cancelar</button>
+      </div>
+    </form>
   </div>
 </div>
 <script>
@@ -212,11 +257,27 @@ document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
     document.getElementById('detalle-peso').textContent = btn.getAttribute('peso');
     document.getElementById('detalle-dimensiones').textContent = btn.getAttribute('dimensiones');
     document.getElementById('detalle-conductor').textContent = btn.getAttribute('conductor');
+
     document.getElementById('modal-ver-detalles').style.display = 'block';
   };
 });
 document.getElementById('cerrar-detalles').onclick = function() {
   document.getElementById('modal-ver-detalles').style.display = 'none';
+};
+document.getElementById('btn-asignar-conductor').onclick = function() {
+  // Pasa el ID del paquete al modal de asignación
+  document.getElementById('asignar-paquete-id').value = document.getElementById('detalle-id').textContent.trim();
+  document.getElementById('modal-asignar-conductor').style.display = 'block';
+};
+document.getElementById('cerrar-modal-asignar').onclick = function() {
+  document.getElementById('modal-asignar-conductor').style.display = 'none';
+};
+document.getElementById('btn-cambiar-estado').onclick = function() {
+  document.getElementById('cambiar-estado-paquete-id').value = document.getElementById('detalle-id').textContent.trim();
+  document.getElementById('modal-cambiar-estado').style.display = 'block';
+};
+document.getElementById('cerrar-modal-cambiar-estado').onclick = function() {
+  document.getElementById('modal-cambiar-estado').style.display = 'none';
 };
 </script>
 {% endblock %}

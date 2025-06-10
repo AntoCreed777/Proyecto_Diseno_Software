@@ -2,27 +2,61 @@ from django.http import HttpResponse
 from django.template import Template, Context
 from django.template import loader
 from django.shortcuts import render, redirect
-from api.models import Paquete, Cliente, Usuario, Despachador, Conductor
+from api.models import Paquete, Cliente, Usuario, Despachador, Conductor, EstadoEntrega
 from api.serializers import UsuarioSerializer, PaqueteSerializer, ClienteSerializer
 from rest_framework.exceptions import ValidationError
 from django.contrib import messages
+from django.views.decorators.http import require_POST
 
 def inicio(request):
 
     return render(request,'despachador/inicio.html')
 
 def paquetes(request):
+    paquetes = Paquete.objects.all()
+    id_paquete = request.GET.get('id')
+    fecha = request.GET.get('fecha')
+    estado = request.GET.get('estado')
+    conductor = request.GET.get('conductor')
+
+    if id_paquete:
+        paquetes = paquetes.filter(id=id_paquete)
+    if fecha:
+        paquetes = paquetes.filter(fecha_registro__date=fecha)
+    if estado:
+        paquetes = paquetes.filter(estado__estado=estado)
+    if conductor:
+        paquetes = paquetes.filter(conductor__id=conductor)
+
     clientes = Cliente.objects.select_related('usuario').all()
-    paquetes = Paquete.objects.all().order_by('-id')
-    conductores = Conductor.objects.all()
-    return render(request,'despachador/paquetes.html', {
+    conductores = Conductor.objects.select_related('usuario').all()
+    estados = EstadoEntrega.objects.all()
+    return render(request, 'despachador/paquetes.html', {
         'clientes': clientes,
-        'paquetes': paquetes,
-        })
+        'paquetes': paquetes.order_by('-id'),
+        'conductores': conductores,
+        'estados': estados,
+    })
 
 def conductores(request):
-    conductores = Conductor.objects.all()
-    return render(request,'despachador/conductores.html',{'conductores': conductores})
+    conductores = Conductor.objects.select_related('usuario', 'vehiculo').all()
+    id_conductor = request.GET.get('id')
+    nombre = request.GET.get('nombre')
+    estado = request.GET.get('estado')
+    vehiculo = request.GET.get('vehiculo')
+
+    if id_conductor:
+        conductores = conductores.filter(id=id_conductor)
+    if nombre:
+        conductores = conductores.filter(
+            usuario__first_name__icontains=nombre
+        )
+    if estado:
+        conductores = conductores.filter(estado=estado)
+    if vehiculo:
+        conductores = conductores.filter(vehiculo__matricula__icontains=vehiculo)
+
+    return render(request, 'despachador/conductores.html', {'conductores': conductores})
 
 def registrar_paquete(request):
     if request.method == 'POST':
@@ -70,7 +104,6 @@ def registrar_cliente(request):
         if serializer.is_valid():
             serializer.save()
         else:
-            # Agrega cada error del serializer a messages
             for field, errors in serializer.errors.items():
                 for error in errors:
                     messages.error(request, f"{field}: {error}")
@@ -79,4 +112,24 @@ def registrar_cliente(request):
                 'paquetes': Paquete.objects.all().order_by('-id'),
                 'show_cliente_modal': True,
             })
+    return redirect('paquetes_despachador')
+
+def asignar_conductor(request):
+    if request.method == 'POST':
+        paquete_id = request.POST.get('paquete_id')
+        conductor_id = request.POST.get('conductor_id')
+        paquete = Paquete.objects.get(id=paquete_id)
+        conductor = Conductor.objects.get(id=conductor_id)
+        paquete.conductor = conductor
+        paquete.save()
+    return redirect('paquetes_despachador')
+
+def cambiar_estado_paquete(request):
+    if request.method == 'POST':
+        paquete_id = request.POST.get('paquete_id')
+        estado_id = request.POST.get('estado_id')
+        paquete = Paquete.objects.get(id=paquete_id)
+        estado = EstadoEntrega.objects.get(id=estado_id)
+        paquete.estado = estado
+        paquete.save()
     return redirect('paquetes_despachador')

@@ -6,16 +6,18 @@ Conductores
 
 {% block content %}
 <div class="filter-box">
-    <input type="int" placeholder="ID del conductor">
-    <input type="text" placeholder="Nombre del conductor">
-    <input type="text" placeholder="Patente del vehículo">
-    <select>
-        <option value="">Todos los estados</option>
-        <option value="disponible">Disponible</option>
-        <option value="no disponible">No disponible</option>
-        <option value="en ruta">En ruta</option>
-    </select>        
-    <button>Buscar</button>
+    <form method="get" id="filtro-conductores" class="filter-box">
+        <input type="number" name="id" placeholder="ID del conductor" value="{{ request.GET.id }}">
+        <input type="text" name="nombre" placeholder="Nombre" value="{{ request.GET.nombre }}">
+        <select name="estado">
+            <option value="">Todos los estados</option>
+            <option value="en_ruta" {% if request.GET.estado == "en_ruta" %}selected{% endif %}>En Ruta</option>
+            <option value="disponible" {% if request.GET.estado == "disponible" %}selected{% endif %}>Disponible</option>
+            <option value="no disponible" {% if request.GET.estado == "no disponible" %}selected{% endif %}>No Disponible</option>
+        </select>
+        <input type="text" name="vehiculo" placeholder="Patente vehículo" value="{{ request.GET.vehiculo }}">
+        <button type="submit">Buscar</button>
+    </form>
 </div>
 <table>
     <thead>
@@ -41,7 +43,7 @@ Conductores
                         nombre="{{ conductor.usuario.first_name }} {{ conductor.usuario.last_name }}"
                         correo="{{ conductor.usuario.email }}"
                         telefono="{{ conductor.telefono }}"
-                        patente="{{ conductor.vehiculo.patente }}"
+                        patente="{{ conductor.vehiculo.matricula }}"
                         estado="{{ conductor.estado }}">
                     Ver detalles
                 </button>
