@@ -60,7 +60,7 @@ Paquetes
       <label>Teléfono del destinatario:</label>
       <input type="text" name="telefono_destinatario" required><br>
       <label>Dirección de envío:</label>
-      <input type="text" name="direccion_envio" required><br>
+      <input type="text" name="direccion_envio_texto" required><br>
       <label>Dimensiones:</label>
       <input type="text" name="dimensiones" required><br>
       <label>Peso (kg):</label>
@@ -95,11 +95,11 @@ Paquetes
       <Label>Nombre de usuario:</label>
       <input type="text" name="username" required>
       <Label>Correo electrónico:</Label>
-      <input type="text" name="correo" required>
+      <input type="text" name="correo">
       <label>Dirección:</label>
-      <input type="text" name="direccion" required>
+      <input type="text" name="direccion">
       <label>Teléfono:</label>
-      <input type="text" name="telefono" required>
+      <input type="text" name="telefono">
       <label>Contraseña:</label>
       <input type="password" name="contraseña" required>
       <label>Confirmar contraseña:</label>
@@ -153,9 +153,9 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
       <tr>
           <td>{{ paquete.id }}</td>
           <td>{{ paquete.fecha_registro }}</td>
-          <td>{{ paquete.estado.estado }}</td>
+          <td>{%if paquete.estado == 'En_Bodega'%} En bodega {%elif paquete.estado == 'En_ruta'%} En ruta {%elif paquete.estado == 'Entregado'%} Entregado {%endif%} </td>
           <td>{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}</td>
-          <td>{{ paquete.direccion_envio}}</td>
+          <td>{{ paquete.direccion_envio_texto}}</td>
           <td>{{ paquete.conductor.usuario.first_name }} {{paquete.conductor.usuario.last_name}}</td>
           <td>
             <button type="button"
@@ -166,8 +166,8 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
                     nombre-receptor="{{ paquete.nombre_destinatario }}"
                     rut-receptor="{{ paquete.rut_destinatario }}"
                     telefono-receptor="{{ paquete.telefono_destinatario }}"
-                    direccion="{{ paquete.direccion_envio }}"
-                    estado="{{ paquete.estado.estado }}"
+                    direccion="{{ paquete.direccion_envio_texto }}"
+                    estado="{%if paquete.estado == 'En_Bodega'%} En bodega {%elif paquete.estado == 'En_ruta'%} En ruta {%elif paquete.estado == 'Entregado'%} Entregado {%endif%}"
                     peso="{{ paquete.peso }}"
                     dimensiones="{{ paquete.dimensiones }}"
                     conductor="{{ paquete.conductor.usuario.first_name }} {{ paquete.conductor.usuario.last_name }}">
@@ -230,11 +230,11 @@ document.getElementById('cerrar-modal-cliente').onclick = function() {
       {% csrf_token %}
       <input type="hidden" name="paquete_id" id="cambiar-estado-paquete-id">
       <label>Seleccione nuevo estado:</label>
-      <select name="estado_id" required>
+      <select name="estado" required>
         <option value="">Seleccione un estado</option>
-        {% for estado in estados %}
-          <option value="{{ estado.id }}">{{ estado.estado }}</option>
-        {% endfor %}
+          <option value="En_Bodega">En bodega</option>
+          <option value="En_ruta">En ruta</option>
+          <option value="Entregado">Entregado</option>
       </select>
       <div class="modal-buttons">
         <button type="submit">Cambiar</button>

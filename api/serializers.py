@@ -3,7 +3,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from .models import (
     Usuario, Cliente, Conductor, Despachador, Admin,
-    Vehiculo, Ruta, ConductorPoseeRuta, EstadoEntrega,
+    Vehiculo, Ruta, ConductorPoseeRuta,
     Paquete, Notificacion
 )
 from django.contrib.auth.models import Group
@@ -138,11 +138,6 @@ class RutaSerializer(serializers.ModelSerializer):
 class ConductorPoseeRutaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConductorPoseeRuta
-        fields = '__all__'
-
-class EstadoEntregaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = EstadoEntrega
         fields = '__all__'
 
 class PaqueteSerializer(serializers.ModelSerializer):

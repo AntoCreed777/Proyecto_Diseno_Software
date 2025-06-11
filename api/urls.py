@@ -9,7 +9,6 @@ from .views import (
     VehiculoViewSet,
     RutaViewSet,
     ConductorPoseeRutaViewSet,
-    EstadoEntregaViewSet,
     PaqueteViewSet,
     NotificacionViewSet
 )
@@ -23,7 +22,6 @@ router.register('admins', AdminViewSet)
 router.register('vehiculos', VehiculoViewSet)
 router.register('rutas', RutaViewSet)
 router.register('conductor-posee-rutas', ConductorPoseeRutaViewSet)
-router.register('estados-entrega', EstadoEntregaViewSet)
 router.register('paquetes', PaqueteViewSet)
 router.register('notificaciones', NotificacionViewSet)
 

@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.template import Template, Context
 from django.template import loader
 from django.shortcuts import render, redirect
-from api.models import Paquete, Cliente, Usuario, Despachador, Conductor, EstadoEntrega
+from api.models import Paquete, Cliente, Usuario, Despachador, Conductor
 from api.serializers import UsuarioSerializer, PaqueteSerializer, ClienteSerializer
 from rest_framework.exceptions import ValidationError
 from django.contrib import messages
@@ -30,12 +30,10 @@ def paquetes(request):
 
     clientes = Cliente.objects.select_related('usuario').all()
     conductores = Conductor.objects.select_related('usuario').all()
-    estados = EstadoEntrega.objects.all()
     return render(request, 'despachador/paquetes.html', {
         'clientes': clientes,
         'paquetes': paquetes.order_by('-id'),
         'conductores': conductores,
-        'estados': estados,
     })
 
 def conductores(request):
@@ -65,13 +63,16 @@ def registrar_paquete(request):
             'peso': request.POST.get('peso'),
             'ubicacion_actual_lat': 0.0,
             'ubicacion_actual_lng': 0.0,
+            'ubicacion_actual_texto': 'En Bodega',
             'direccion_envio_lat': 0.0,
             'direccion_envio_lng': 0.0,
+            'direccion_envio_texto': request.POST.get('direccion_envio_texto'),
             'nombre_destinatario': request.POST.get('nombre_destinatario'),
             'rut_destinatario': request.POST.get('rut_destinatario'),
             'telefono_destinatario': request.POST.get('telefono_destinatario'),
             'cliente': request.POST.get('cliente_id'),
             'despachador': Despachador.objects.get(usuario=request.user).id,
+            'estado': 'en_bodega',
         }
         serializer = PaqueteSerializer(data=data)
         if serializer.is_valid():
@@ -127,9 +128,7 @@ def asignar_conductor(request):
 def cambiar_estado_paquete(request):
     if request.method == 'POST':
         paquete_id = request.POST.get('paquete_id')
-        estado_id = request.POST.get('estado_id')
         paquete = Paquete.objects.get(id=paquete_id)
-        estado = EstadoEntrega.objects.get(id=estado_id)
-        paquete.estado = estado
+        paquete.estado = request.POST.get('estado')
         paquete.save()
     return redirect('paquetes_despachador')
