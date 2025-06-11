@@ -3,7 +3,8 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from api.models import (
     Usuario, Cliente, Conductor, Despachador, Admin, Vehiculo,
-    Ruta, ConductorPoseeRuta, Paquete, Notificacion
+    Ruta, ConductorPoseeRuta, Paquete, Notificacion,
+    TiposRoles
 )
 
 class Command(BaseCommand):
@@ -11,10 +12,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Crear grupos (una vez)
-        cliente_group, _ = Group.objects.get_or_create(name='cliente')
-        conductor_group, _ = Group.objects.get_or_create(name='conductor')
-        despachador_group, _ = Group.objects.get_or_create(name='despachador')
-        admin_group, _ = Group.objects.get_or_create(name='admin')
+        cliente_group, _ = Group.objects.get_or_create(name=TiposRoles.CLIENTE)
+        conductor_group, _ = Group.objects.get_or_create(name=TiposRoles.CONDUCTOR)
+        despachador_group, _ = Group.objects.get_or_create(name=TiposRoles.DESPACHADOR)
+        admin_group, _ = Group.objects.get_or_create(name=TiposRoles.ADMIN)
 
         def obtener_permisos(modelo):
             """
