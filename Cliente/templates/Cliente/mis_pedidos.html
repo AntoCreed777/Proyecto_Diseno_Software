@@ -16,7 +16,7 @@
         <li>dimensiones</li>
     </ul>
 
-    <table>
+    <table class = "pedidos">
         <thead>
         <tr>
             <th>Paquete</th>
@@ -27,15 +27,18 @@
             <th>Dimensiones</th>
         </tr>
         </thead>
+
         <tbody>
+        {% for paquete in paquetes %}
        <tr>
-            <td>Telefono</td>
-           <td>Pendiente</td>
-           <td>Manuel</td>
-           <td>Pedro</td>
-           <td>50kg</td>
-           <td>10x10cm</td>
+            <td>{{ paquete.id }}</td>
+           <td>{{ paquete.estado.estado }}</td>
+           <td>{{ paquete.cliente.usuario}}</td>
+           <td>{{ paquete.nombre_destinatario }}</td>
+           <td>{{ paquete.peso }}</td>
+           <td>{{ paquete.dimensiones }}</td>
        </tr>
+        {% endfor %}
         </tbody>
     </table>
     {% endblock %}

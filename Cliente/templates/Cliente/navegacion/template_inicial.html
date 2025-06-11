@@ -56,6 +56,19 @@
             padding: 5px;
             width: 200px;
         }
+
+        .contenedor{
+        width: 20vh;
+        height: 5vh;
+        border-radius: 25px;
+        background-color: #007ACC;
+        border: 2px solid black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-size: 2vh;
+        }
     </style>
 
     <title>
@@ -74,8 +87,8 @@
         <header>
             <h1>{% block subtitle %}{% endblock %}</h1>
             <div>
-                <span>{{ user.username }}</span>
-                <button>Cerrar sesión</button>
+                <span>{{ paquete.cliente.username }}</span>
+                <button class = "contenedor">Cerrar sesión</button>
             </div>
         </header>
     {% block content %}
