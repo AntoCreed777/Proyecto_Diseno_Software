@@ -8,6 +8,7 @@ from .models import (
 )
 from django.contrib.auth.models import Group
 from .exceptions import GroupNotConfiguredError
+from accounts.views import activarEmail
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -28,6 +29,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         rol = self.context.get('rol')
+        request = self.context.get('request')
         if rol not in dict(Usuario._meta.get_field('rol').choices):
             raise serializers.ValidationError({"rol": "Rol inválido."})
 
@@ -36,6 +38,8 @@ class UsuarioSerializer(serializers.ModelSerializer):
         usuario.rol = rol
         usuario.set_password(password)
         usuario.save()
+
+        activarEmail(request=request, user=usuario)
 
         try:
             grupo = Group.objects.get(name=rol)
@@ -56,7 +60,13 @@ class ClienteSerializer(serializers.ModelSerializer):
         usuario_data = validated_data.pop('usuario')
 
         with transaction.atomic():
-            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': TiposRoles.CLIENTE})
+            usuario_serializer = UsuarioSerializer(
+                data=usuario_data, 
+                context={
+                    'rol': TiposRoles.CLIENTE,
+                    'request': self.context.get('request')
+                }
+            )
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
@@ -74,7 +84,13 @@ class ConductorSerializer(serializers.ModelSerializer):
         usuario_data = validated_data.pop('usuario')
 
         with transaction.atomic():
-            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': TiposRoles.CONDUCTOR})
+            usuario_serializer = UsuarioSerializer(
+                data=usuario_data, 
+                context={
+                    'rol': TiposRoles.CONDUCTOR,
+                    'request': self.context.get('request')
+                }
+            )
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
@@ -90,7 +106,13 @@ class DespachadorSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         usuario_data = validated_data.pop('usuario')
         with transaction.atomic():
-            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': TiposRoles.DESPACHADOR})
+            usuario_serializer = UsuarioSerializer(
+                data=usuario_data, 
+                context={
+                    'rol': TiposRoles.DESPACHADOR,
+                    'request': self.context.get('request')
+                }
+            )
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
@@ -112,7 +134,13 @@ class AdminSerializer(serializers.ModelSerializer):
         usuario_data = validated_data.pop('usuario')
 
         with transaction.atomic():
-            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': TiposRoles.ADMIN})
+            usuario_serializer = UsuarioSerializer(
+                data=usuario_data, 
+                context={
+                    'rol': TiposRoles.ADMIN,
+                    'request': self.context.get('request')
+                }
+            )
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 

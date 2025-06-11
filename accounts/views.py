@@ -31,20 +31,22 @@ def activate(request, uidb64, token):
     return redirect('login')
 
 #Envia el correo
-def activarEmail(request,user,correo):
-     #sujeto del correo
+def activarEmail(request, user):
      mail_subject = 'Activar tu cuenta.'
-     #link del correo
-     message = render_to_string('activar_cuenta.html', {
-        'user': user.username,
-        'dominio': get_current_site(request).domain,
-        'uid': urlsafe_base64_encode(force_bytes(user.pk)),
-        'token': account_activation_token.make_token(user),
-        'protocolo': 'https' if request.is_secure() else 'http'
-    })
-     email = EmailMessage(mail_subject,message,to=[correo])
+
+     message = render_to_string(
+          'activar_cuenta.html',
+          {
+               'user': user.username,
+               'dominio': get_current_site(request).domain,
+               'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+               'token': account_activation_token.make_token(user),
+               'protocolo': 'https' if request.is_secure() else 'http'
+          }
+     )
+     email = EmailMessage(mail_subject,message,to=[user.email])
      if not email.send():
-          messages.success(request,"Ocurrio un error al enviar el correo")
+          messages.error(request,"Ocurrio un error al enviar el correo")
 
 def login_view(request):
      if request.method == 'POST':
@@ -73,7 +75,7 @@ def registration(request):
           form = RegistroClienteForm(request.POST)
           if form.is_valid():
                usuario = form.save(commit=True)
-               activarEmail(request, usuario, usuario.email)
+               activarEmail(request, usuario)
                
                messages.success(request, 'Registro exitoso. Por favor, verifica tu correo para activar tu cuenta.')
                return redirect('/accounts/login')

@@ -30,20 +30,64 @@ class ClienteViewSet(ModelViewSet):
     serializer_class = ClienteSerializer
     #permission_classes = [IsAuthenticated]
 
+    def get_serializer(self, *args, **kwargs):
+        # Incluir el request en el contexto del serializador
+        kwargs['context'] = self.get_serializer_context()
+        return super().get_serializer(*args, **kwargs)
+
+    def get_serializer_context(self):
+        # Agregar el request al contexto
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
 class ConductorViewSet(ModelViewSet):
     queryset = Conductor.objects.all()
     serializer_class = ConductorSerializer
     #permission_classes = [IsAuthenticated]
+    
+    def get_serializer(self, *args, **kwargs):
+        # Incluir el request en el contexto del serializador
+        kwargs['context'] = self.get_serializer_context()
+        return super().get_serializer(*args, **kwargs)
+
+    def get_serializer_context(self):
+        # Agregar el request al contexto
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 class DespachadorViewSet(ModelViewSet):
     queryset = Despachador.objects.all()
     serializer_class = DespachadorSerializer
     #permission_classes = [IsAuthenticated]
+    
+    def get_serializer(self, *args, **kwargs):
+        # Incluir el request en el contexto del serializador
+        kwargs['context'] = self.get_serializer_context()
+        return super().get_serializer(*args, **kwargs)
+
+    def get_serializer_context(self):
+        # Agregar el request al contexto
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 class AdminViewSet(ModelViewSet):
     queryset = Admin.objects.all()
     serializer_class = AdminSerializer
     #permission_classes = [IsAuthenticated]
+    
+    def get_serializer(self, *args, **kwargs):
+        # Incluir el request en el contexto del serializador
+        kwargs['context'] = self.get_serializer_context()
+        return super().get_serializer(*args, **kwargs)
+
+    def get_serializer_context(self):
+        # Agregar el request al contexto
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 class VehiculoViewSet(ModelViewSet):
     queryset = Vehiculo.objects.all()
