@@ -37,6 +37,12 @@ Este repositorio contiene el código fuente y las dependencias necesarias para e
 >   pip install -r requirements.txt
 >   ```
 
+> [!WARNING]
+> Si en linux no se ejecuta el script, intente con el siguiente comando antes de volver a intentarlo
+> ``` bash
+> dos2unix init_venv.sh
+> ```
+
 ## Comandos previos
 
 Antes de iniciar el servidor, es necesario aplicar las migraciones de la base de datos para asegurar que la estructura esté actualizada. 
