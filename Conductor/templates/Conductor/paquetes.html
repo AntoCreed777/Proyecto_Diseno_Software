@@ -7,32 +7,17 @@ Pedidos
 {% block content %}
 <div class="container">
     <h1>Mis entregas</h1>
-    
-    <!-- Barra de búsqueda funcional -->
-    <div class="search-bar">
-        <div class="search-item">
-            <span class="search-label">ID del pedido</span>
-            <input type="text" class="search-box" id="idPedido" placeholder="Ej: 123">
-        </div>
-        
-        <div class="search-item">
-            <span class="search-label">Fecha</span>
-            <input type="date" class="search-box" id="fechaPedido">
-        </div>
-        
-        <div class="search-item">
-            <span class="search-label">Estado</span>
-            <select class="search-box" id="estadoPedido">
-                <option value="">Todos</option>
-                <option value="Sin asignar">Sin asignar</option>
-                <option value="En ruta">En ruta</option>
-                <option value="Entregado">Entregado</option>
-                <option value="Cancelado">Cancelado</option>
-            </select>
-        </div>
-        
-        <button class="search-button" onclick="filtrarPedidos()">Buscar</button>
-    </div>
+    <form method="get" id="filtro-paquetes" class="filter-box">
+    <input type="number" name="id" placeholder="ID del paquete" value="{{ request.GET.id }}">
+    <input type="date" name="fecha" placeholder="Fecha" value="{{ request.GET.fecha }}">
+    <select name="estado">
+        <option value="">Todos los estados</option>
+        {% for estado in estados %}
+          <option value="{{ estado.estado }}" {% if request.GET.estado == estado.estado %}selected{% endif %}>{{ estado.estado }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Buscar</button>
+</form>
     
     <hr>
     
@@ -49,17 +34,32 @@ Pedidos
             </tr>
         </thead>
         <tbody>
-            <!-- FORMULA AUTOMATIZADA (falta saber donde encontrar los datos)-->
-            {% for pedido in pedidos %}
-            <tr data-id="{{ pedido.id }}" data-fecha="{{ pedido.fecha_iso }}" data-estado="{{ pedido.estado }}">
-                <td>{{ pedido.id }}</td>    
-                <td>{{ pedido.fecha }}</td>
-                <td>{{ pedido.estado }}</td>
-                <td>{{ pedido.cliente }}</td>
-                <td>{{ pedido.direccion }}</td>
-                <td><a href="#" class="detalles-link">Ver detalles</a></td>
+            <!-- FORMULA AUTOMATIZADA-->
+            {% for paquete in paquetes %}
+            <tr>
+                <td>{{ paquete.id }}</td>
+                <td>{{ paquete.fecha_registro }}</td>
+                <td>{%if paquete.estado == 'en_Bodega'%} En bodega {%elif paquete.estado == 'en_ruta'%} En ruta {%elif paquete.estado == 'entregado'%} Entregado {%endif%} </td>
+                <td>{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}</td>
+                <td>{{ paquete.direccion_envio_texto}}</td>
+                <td>
+                    <button type="button"
+                            class="btn-ver-detalles"
+                            paquete-id="{{ paquete.id }}"
+                            fecha="{{ paquete.fecha_envio }}"
+                            cliente="{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}"
+                            nombre-receptor="{{ paquete.nombre_destinatario }}"
+                            rut-receptor="{{ paquete.rut_destinatario }}"
+                            telefono-receptor="{{ paquete.telefono_destinatario }}"
+                            direccion="{{ paquete.direccion_envio_texto }}"
+                            estado="{%if paquete.estado == 'En_Bodega'%} En bodega {%elif paquete.estado == 'En_ruta'%} En ruta {%elif paquete.estado == 'Entregado'%} Entregado {%endif%}"
+                            peso="{{ paquete.peso }}"
+                            dimensiones="{{ paquete.dimensiones }}"
+                    Ver detalles
+                    </button>
+                </td>
             </tr>
-            {% endfor %}
+             {% endfor %}
         </tbody>
     </table>
 </div>
@@ -67,7 +67,7 @@ Pedidos
 <style>
     .container {
         font-family: Arial, sans-serif;
-        max-width: 1200px;
+        max-width: 1300px;
         margin: 0 auto;
         padding: 20px;
     }

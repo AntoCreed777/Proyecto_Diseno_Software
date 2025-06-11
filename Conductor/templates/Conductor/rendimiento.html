@@ -3,9 +3,9 @@
 {% block title %}Rendimiento{% endblock %}
 
 {% block content %}
+<!-- PARTE DE 4 LOS BLOQUES DE ARRIBA-->
 <div class="container">
     <h1>Rendimiento</h1>
-    
     <div class="stats-container">
         <div class="stat-card">
             <h3>Entregas totales esta semana</h3>
@@ -29,14 +29,8 @@
     </div>
     
     <hr>
-    
+    <!-- PARTE DE LAS TABLAS-->
     <h2>Entregas diarias</h2>
-    <div class="days-list">
-        {% for dia in dias_semana %}
-        <span class="day-item">{{ dia }}</span>
-        {% endfor %}
-    </div>
-    
     <table class="deliveries-table">
         <thead>
             <tr>
@@ -48,7 +42,6 @@
             </tr>
         </thead>
         <tbody>
-
             <!-- FORMULA AUTOMATIZADA (falta saber donde encontrar los datos)-->
             {% for entrega in entregas_diarias %}
             <tr>
@@ -65,7 +58,7 @@
 
 <style>
     .container {
-        max-width: 1000px;
+        max-width: 14000px;
         margin: 0 auto;
         padding: 20px;
     }
