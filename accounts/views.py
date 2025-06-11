@@ -56,6 +56,8 @@ def login_view(request):
                     return redirect('/admin/dashboard')
                elif user.rol == 'conductor':
                     return redirect('/conductor/inicio')
+               elif user.rol == 'despachador':
+                    return redirect('/despachador/paquetes')
                else:
                     return redirect('/home/')
      else:

@@ -24,7 +24,7 @@ def paquetes(request):
     if fecha:
         paquetes = paquetes.filter(fecha_registro__date=fecha)
     if estado:
-        paquetes = paquetes.filter(estado__estado=estado)
+        paquetes = paquetes.filter(estado=estado)
     if conductor:
         paquetes = paquetes.filter(conductor__id=conductor)
 

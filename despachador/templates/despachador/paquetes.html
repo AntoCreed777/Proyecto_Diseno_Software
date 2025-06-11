@@ -10,9 +10,9 @@ Paquetes
     <input type="date" name="fecha" placeholder="Fecha" value="{{ request.GET.fecha }}">
     <select name="estado">
         <option value="">Todos los estados</option>
-        {% for estado in estados %}
-          <option value="{{ estado.estado }}" {% if request.GET.estado == estado.estado %}selected{% endif %}>{{ estado.estado }}</option>
-        {% endfor %}
+        <option value="En_Bodega">En bodega</option>
+        <option value="En_ruta">En ruta</option>
+        <option value="Entregado">Entregados</option>
     </select>
     <select name="conductor">
         <option value="">Todos los conductores</option>
