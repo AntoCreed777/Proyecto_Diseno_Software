@@ -12,7 +12,7 @@ def mis_pedidos(request):
     paquetes = Paquete.objects.all()
 
     print(clientes)
-    return render(request, 'Cliente/mis_pedidos.html', context = {'paquetes':paquetes}, )
+    return render(request, 'Cliente/mis_pedidos.html', context = {'paquetes':paquetes})
 
 def ayuda(request):
 
