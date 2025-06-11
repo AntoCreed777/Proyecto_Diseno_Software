@@ -1,11 +1,5 @@
-<html>
-<body>
-    <nav>
-        <li><a href="{% url 'inicio' %}"> Inicio </a></li>
-        <li><a href="{% url 'paquetes' %}"> Paquetes </a></li>
-        <li><a href="{% url 'rendimiento' %}"> Rendimiento </a></li>
-    </nav>
-</body>
-
-
-</html>
+<nav>
+    <a href="{% url 'conductor:inicio' %}" class="{% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Inicio</a>
+    <a href="{% url 'conductor:paquetes' %}" class="{% if request.resolver_match.url_name == 'paquetes' %}active{% endif %}">Paquetes</a>
+    <a href="{% url 'conductor:rendimiento' %}" class="{% if request.resolver_match.url_name == 'rendimiento' %}active{% endif %}">Rendimiento</a>
+</nav>

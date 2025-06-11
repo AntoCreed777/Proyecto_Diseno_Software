@@ -5,13 +5,59 @@ Inicio
 {% endblock %}
 
 {% block content %}
-    <h1> Inicio </h1>
-    <h2> Pagina inicial de la pagina, donde tenemos: </h2>
-    <ul>
-        <li>Pedidos por asignar</li>
-        <li>Conductores disponibles</li>
-        <li>Paquetes entregados hoy</li>
-        <li>Rutas en curso</li>
-    </ul>
-    <p> Además de una tabla de notificaciones recientes</p>
+    <h1>Inicio</h1>
+
+    <!-- PARTE DE LOS 4 BLOQUES DE ARRIBA-->
+    <div style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; text-align: center; flex: 1; margin: 0 10px;">
+            <h3>Rutas asignadas</h3>
+            <p style="font-size: 24px; font-weight: bold;">{{ rutas_asignadas }}</p>
+        </div>
+        
+        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; text-align: center; flex: 1; margin: 0 10px;">
+            <h3>Paquetes por entregar</h3>
+            <p style="font-size: 24px; font-weight: bold;">{{ paquetes_pendientes }}</p>
+        </div>
+        
+        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; text-align: center; flex: 1; margin: 0 10px;">
+            <h3>Paquetes entregados hoy</h3>
+            <p style="font-size: 24px; font-weight: bold;">{{ paquetes_entregados }}</p>
+        </div>
+        
+        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; text-align: center; flex: 1; margin: 0 10px;">
+            <h3>Rendimiento de hoy</h3>
+            <p style="font-size: 24px; font-weight: bold; color: green;">{{ rendimiento }}</p>
+        </div>
+    </div>
+
+    <!--PARTE DEL TEXTO "NOTIFICACIONES RECIENTES"-->
+    <div style="text-align: center; margin-bottom: 20px;">
+        <h2>Notificaciones recientes</h2>
+    </div>
+
+    <!--PARTE PARA LA CREACIÓN DE FILAS-->
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+        <thead>
+            <tr style="background-color: #f5f5f5;">
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Fecha/hora</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Evento</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Detalles</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for notificacion in notificaciones %}
+            <tr style="border-bottom: 1px solid #ddd;">
+                <td style="padding: 12px;">{{ notificacion.fecha_hora|date:"d/m/Y H:i" }}</td>
+                <td style="padding: 12px;">{{ notificacion.evento }}</td>
+                <td style="padding: 12px;">
+                    <a href="{{ notificacion.enlace_detalles }}" style="color: #0066cc; text-decoration: none;">Ver detalles</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="padding: 12px; text-align: center;">No hay notificaciones recientes</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}

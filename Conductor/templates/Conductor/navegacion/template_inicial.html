@@ -1,21 +1,59 @@
 <html>
-
 <head>
-
     <title>
-
         {% block title %} {% endblock %}
-
     </title>
-
-    <h3>Nombre de usuario</h3>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        
+        .sidebar {
+            width: 150px;
+            background-color: #626263; /*Fondo barra*/
+            padding: 20px;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        nav {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        nav a {
+            text-decoration: none;
+            color: white; /*Color letra*/
+            font-size: 16px;
+            padding: 5px 0;
+            transition: all 0.3s;
+        }
+        
+        nav a.active {
+            background-color: #3e4143; /*Color fondo de la pagina seleccionada*/
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+    </style>
 </head>
 
 <body>
-    {% include "Conductor/navegacion/barra.html" %}
+    <div class="sidebar">
+        {% include "Conductor/navegacion/barra.html" %}
+    </div>
 
-    {% block content %} {% endblock %}
-
+    <div class="main-content">
+        {% block content %} {% endblock %}
+    </div>
 </body>
-
 </html>

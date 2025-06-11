@@ -5,18 +5,144 @@ Pedidos
 {% endblock %}
 
 {% block content %}
-    <h1> Paquetes </h1>
-    <h2> Pagina donde tendremos información de los paquetes, tendremos un buscador de paquetes y una tabla</h2>
+<div class="container">
+    <h1>Mis entregas</h1>
+    
+    <!-- Barra de búsqueda funcional -->
+    <div class="search-bar">
+        <div class="search-item">
+            <span class="search-label">ID del pedido</span>
+            <input type="text" class="search-box" id="idPedido" placeholder="Ej: 123">
+        </div>
+        
+        <div class="search-item">
+            <span class="search-label">Fecha</span>
+            <input type="date" class="search-box" id="fechaPedido">
+        </div>
+        
+        <div class="search-item">
+            <span class="search-label">Estado</span>
+            <select class="search-box" id="estadoPedido">
+                <option value="">Todos</option>
+                <option value="Sin asignar">Sin asignar</option>
+                <option value="En ruta">En ruta</option>
+                <option value="Entregado">Entregado</option>
+                <option value="Cancelado">Cancelado</option>
+            </select>
+        </div>
+        
+        <button class="search-button" onclick="filtrarPedidos()">Buscar</button>
+    </div>
+    
+    <hr>
+    
+    <!-- Tabla de pedidos -->
+    <table class="pedidos-table">
+        <thead>
+            <tr>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">ID</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Fecha</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Estado del paquete</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Cliente</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Dirección</th>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Detalles</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- FORMULA AUTOMATIZADA (falta saber donde encontrar los datos)-->
+            {% for pedido in pedidos %}
+            <tr data-id="{{ pedido.id }}" data-fecha="{{ pedido.fecha_iso }}" data-estado="{{ pedido.estado }}">
+                <td>{{ pedido.id }}</td>    
+                <td>{{ pedido.fecha }}</td>
+                <td>{{ pedido.estado }}</td>
+                <td>{{ pedido.cliente }}</td>
+                <td>{{ pedido.direccion }}</td>
+                <td><a href="#" class="detalles-link">Ver detalles</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-    <h3> Una tabla nos entregará la siguiente información: </h3>
-    <ul>
-        <li>ID</li>
-        <li>Fecha</li>
-        <li>Estado del paquete</li>
-        <li>Cliente</li>
-        <li>Direccion</li>
-        <li>Conductor</li>
-        <li>Detalles</li>
-    </ul>
-    <p> Tendremos un bloque a la izquierda que nos entregará los detalles de cierto pedido</p>
+<style>
+    .container {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    h1 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+    
+    .search-bar {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .search-item {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+    
+    .search-label {
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #555;
+    }
+    
+    .search-box {
+        height: 35px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f9f9f9;
+    }
+    
+    .search-button {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        height: 35px;
+    }
+    
+    hr {
+        border: 0;
+        height: 1px;
+        background-color: #ddd;
+        margin: 20px 0;
+    }
+    
+    .pedidos-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .pedidos-table th, .pedidos-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .pedidos-table th {
+        background-color: #f5f5f5;
+        border-bottom: 2px solid #ddd;
+    }
+    
+    .detalles-link {
+        color: #0066cc;
+        text-decoration: none;
+    }
+    
+    .detalles-link:hover {
+        text-decoration: underline;
+    }
+</style>
 {% endblock %}
