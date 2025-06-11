@@ -2,14 +2,12 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .models import (
     Usuario, Cliente, Conductor, Despachador, Admin,
-    Vehiculo, Ruta, ConductorPoseeRuta,
-    Paquete, Notificacion
+    Vehiculo, Ruta, ConductorPoseeRuta, Paquete, Notificacion
 )
 from .serializers import (
     UsuarioSerializer, ClienteSerializer,
     ConductorSerializer, DespachadorSerializer, AdminSerializer,
-    VehiculoSerializer, RutaSerializer,
-    ConductorPoseeRutaSerializer,
+    VehiculoSerializer, RutaSerializer, ConductorPoseeRutaSerializer,
     PaqueteSerializer, NotificacionSerializer
 )
 from rest_framework.response import Response

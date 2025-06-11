@@ -29,13 +29,10 @@ from phonenumber_field.modelfields import PhoneNumberField
 #
 # vehiculo(@matricula, marca, año_de_fabricacion)
 #
-# paquete(@id, dimensiones, peso, fecha_registro, fecha_entrega, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, telefono_destinatario, id_cliente, id_conductor, id_estado, id_despachador)
+# paquete(@id, dimensiones, peso, fecha_registro, fecha_entrega, estado, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, telefono_destinatario, id_cliente, id_conductor, id_despachador)
 #   - FK: id_cliente -> cliente(id)
 #   - FK: id_conductor -> conductor(id)
-#   - FK: id_estado -> estado(id)
 #   - FK: id_despachador -> despachador(id)
-#
-# estado_entrega(@id, estado)
 #
 # notificacion(@id, mensaje, fecha_envio, id_cliente)
 #   - FK: id_cliente -> cliente(id)
