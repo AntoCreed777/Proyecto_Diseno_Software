@@ -9,6 +9,7 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
 from .forms import RegistroClienteForm, CustomLoginForm
+from api.models import TiposRoles
 
 #Activacion del correo
 def activate(request, uidb64, token):
@@ -52,12 +53,14 @@ def login_view(request):
                user = form.get_user()
                login(request, user)
 
-               if user.rol == 'admin':
+               if user.rol == TiposRoles.ADMIN:
                     return redirect('/admin/dashboard')
-               elif user.rol == 'conductor':
+               elif user.rol == TiposRoles.CONDUCTOR:
                     return redirect('/conductor/inicio')
-               elif user.rol == 'despachador':
-                    return redirect('/despachador/paquetes')
+               elif user.rol == TiposRoles.DESPACHADOR:
+                    return redirect('/despachador/inicio')
+               elif user.rol == TiposRoles.CLIENTE:
+                    return redirect('/cliente/inicio')
                else:
                     return redirect('/home/')
      else:

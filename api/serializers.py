@@ -3,14 +3,15 @@ from django.contrib.auth.password_validation import validate_password
 from django.db import transaction
 from .models import (
     Usuario, Cliente, Conductor, Despachador, Admin,
-    Vehiculo, Ruta, ConductorPoseeRuta, Paquete, Notificacion
+    Vehiculo, Ruta, ConductorPoseeRuta, Paquete, Notificacion,
+    TiposRoles
 )
 from django.contrib.auth.models import Group
 from .exceptions import GroupNotConfiguredError
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
-    rol = serializers.ChoiceField(choices=Usuario._meta.get_field('rol').choices, read_only=True)
+    rol = serializers.ChoiceField(choices=TiposRoles.choices, read_only=True)
 
     class Meta:
         model = Usuario
@@ -55,7 +56,7 @@ class ClienteSerializer(serializers.ModelSerializer):
         usuario_data = validated_data.pop('usuario')
 
         with transaction.atomic():
-            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'cliente'})
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': TiposRoles.CLIENTE})
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
@@ -73,7 +74,7 @@ class ConductorSerializer(serializers.ModelSerializer):
         usuario_data = validated_data.pop('usuario')
 
         with transaction.atomic():
-            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'conductor'})
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': TiposRoles.CONDUCTOR})
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
@@ -89,7 +90,7 @@ class DespachadorSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         usuario_data = validated_data.pop('usuario')
         with transaction.atomic():
-            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'despachador'})
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': TiposRoles.DESPACHADOR})
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 
@@ -111,7 +112,7 @@ class AdminSerializer(serializers.ModelSerializer):
         usuario_data = validated_data.pop('usuario')
 
         with transaction.atomic():
-            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': 'admin'})
+            usuario_serializer = UsuarioSerializer(data=usuario_data, context={'rol': TiposRoles.ADMIN})
             usuario_serializer.is_valid(raise_exception=True)
             usuario = usuario_serializer.save()
 

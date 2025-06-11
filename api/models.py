@@ -40,10 +40,20 @@ from phonenumber_field.modelfields import PhoneNumberField
 ### Fin Modelo MR
 
 
+class TiposRoles(models.TextChoices):
+    CLIENTE = 'cliente', 'Cliente'
+    CONDUCTOR = 'conductor', 'Conductor'
+    DESPACHADOR = 'despachador', 'Despachador'
+    ADMIN = 'admin', 'Admin'
+
 # Modelo base de usuario (Es la generalizacion del MER)
+
 class Usuario(AbstractUser):
     # username, password, email, first_name, last_name ya existen
-    rol = models.CharField(max_length=20, choices=[('cliente', 'Cliente'), ('conductor', 'Conductor'), ('admin', 'Admin'), ('despachador', 'Despachador')])
+    rol = models.CharField(
+        max_length=100,
+        choices=TiposRoles.choices
+    )
     telefono = PhoneNumberField(blank=True, null=True)
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_ultima_modificacion = models.DateTimeField(auto_now=True)
@@ -53,9 +63,18 @@ class Cliente(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     direccion_hogar = models.CharField(max_length=255, blank=True, null=True)
 
+class EstadoConductor(models.TextChoices):
+    EN_RUTA = 'en_ruta', 'En Ruta'
+    DISPONIBLE = 'disponible', 'Disponible'
+    NO_DISPONIBLE = 'no disponible', 'No Disponible'
+
 class Conductor(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=20, choices=[('en_ruta', 'En_Ruta'), ('disponible', 'Disponible'), ('no disponible', 'No Disponible')])
+    estado = models.CharField(
+        max_length=100,
+        choices=EstadoConductor.choices,
+        default=EstadoConductor.DISPONIBLE
+    )
     vehiculo = models.ForeignKey('Vehiculo', on_delete=models.SET_NULL, null=True, blank=True)
 
 class Despachador(models.Model):
@@ -90,14 +109,28 @@ class ConductorPoseeRuta(models.Model):
     conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE)
     ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE)
 
+class EstadoPaquete(models.TextChoices):
+    EN_BODEGA = 'en_bodega', 'En Bodega'
+    EN_RUTA = 'en_ruta', 'En Ruta'
+    ENTREGADO = 'entregado', 'Entregado'
+
 class Paquete(models.Model):
     id = models.AutoField(primary_key=True)
-    dimensiones = models.CharField(max_length=100)
+
+    # Dimensiones
+    largo = models.FloatField(validators=[MinValueValidator(0.0)])
+    ancho = models.FloatField(validators=[MinValueValidator(0.0)])
+    alto = models.FloatField(validators=[MinValueValidator(0.0)])
+
     peso = models.FloatField()
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_entrega = models.DateTimeField(auto_now_add=True)
 
-    estado = models.CharField(max_length=100, choices=[('en_bodega', 'En_Bodega'), ('en_ruta', 'En_ruta'), ('entregado', 'Entregado')])
+    estado = models.CharField(
+        max_length=100,
+        choices=EstadoPaquete.choices,
+        default=EstadoPaquete.EN_BODEGA
+    )
 
     # Ubicacion actual
     ubicacion_actual_lat = models.FloatField()

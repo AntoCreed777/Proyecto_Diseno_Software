@@ -3,7 +3,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from api.models import Usuario, Cliente
 from django.contrib.auth.models import Group
 from django.db import transaction
-from api.models import Usuario
+from api.models import Usuario, TiposRoles
 from api.exceptions import GroupNotConfiguredError
 
 class RegistroClienteForm(UserCreationForm):
@@ -37,15 +37,15 @@ class RegistroClienteForm(UserCreationForm):
         usuario = super().save(commit=False)
         usuario.email = self.cleaned_data['email'].strip()
         usuario.telefono = self.cleaned_data['telefono'].strip()
-        usuario.rol = 'cliente'
+        usuario.rol = TiposRoles.CLIENTE
         if commit:
             with transaction.atomic():
                 usuario.save()
 
                 try:
-                    grupo = Group.objects.get(name='cliente')
+                    grupo = Group.objects.get(name=TiposRoles.CLIENTE)
                 except Group.DoesNotExist:
-                    raise GroupNotConfiguredError("El grupo 'cliente' no está configurado en la base de datos.")
+                    raise GroupNotConfiguredError(f"El grupo '{TiposRoles.CLIENTE}' no está configurado en la base de datos.")
 
                 usuario.groups.add(grupo)
 
