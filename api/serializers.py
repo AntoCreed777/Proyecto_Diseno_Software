@@ -139,7 +139,6 @@ class ConductorPoseeRutaSerializer(serializers.ModelSerializer):
         model = ConductorPoseeRuta
         fields = '__all__'
 
-
 class PaqueteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paquete

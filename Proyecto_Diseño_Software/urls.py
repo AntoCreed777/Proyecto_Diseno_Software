@@ -28,6 +28,6 @@ urlpatterns = [
     path('home/',include('home.urls')),
     path('conductor/', include('Conductor.urls')), # Incluye URLs de la página conductor
     path('administrador/', include('Administrador.urls')), # Incluye URLs de la página administrador
-    path('despachador/', include('Despachador.urls')),  # Incluye URLs de la página despachador
+    path('despachador/', include('despachador.urls')),  # Incluye URLs de la página despachador
     path('cliente/', include('Cliente.urls')), # Incluye URLs de la página cliente
 ]
