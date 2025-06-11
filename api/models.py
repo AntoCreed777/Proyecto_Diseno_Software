@@ -29,13 +29,10 @@ from phonenumber_field.modelfields import PhoneNumberField
 #
 # vehiculo(@matricula, marca, año_de_fabricacion)
 #
-# paquete(@id, dimensiones, peso, fecha_registro, fecha_entrega, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, telefono_destinatario, id_cliente, id_conductor, id_estado, id_despachador)
+# paquete(@id, dimensiones, peso, fecha_registro, fecha_entrega, estado, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, telefono_destinatario, id_cliente, id_conductor, id_despachador)
 #   - FK: id_cliente -> cliente(id)
 #   - FK: id_conductor -> conductor(id)
-#   - FK: id_estado -> estado(id)
 #   - FK: id_despachador -> despachador(id)
-#
-# estado_entrega(@id, estado)
 #
 # notificacion(@id, mensaje, fecha_envio, id_cliente)
 #   - FK: id_cliente -> cliente(id)
@@ -93,10 +90,6 @@ class ConductorPoseeRuta(models.Model):
     conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE)
     ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE)
 
-class EstadoEntrega(models.Model):
-    id = models.AutoField(primary_key=True)
-    estado = models.CharField(max_length=100)
-
 class Paquete(models.Model):
     id = models.AutoField(primary_key=True)
     dimensiones = models.CharField(max_length=100)
@@ -104,20 +97,23 @@ class Paquete(models.Model):
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_entrega = models.DateTimeField(auto_now_add=True)
 
+    estado = models.CharField(max_length=100, choices=[('en_bodega', 'En_Bodega'), ('en_ruta', 'En_ruta'), ('entregado', 'Entregado')])
+
     # Ubicacion actual
     ubicacion_actual_lat = models.FloatField()
     ubicacion_actual_lng = models.FloatField()
+    ubicacion_actual_texto =  models.CharField(max_length=200)
 
     # Direccion envio
     direccion_envio_lat = models.FloatField()
     direccion_envio_lng = models.FloatField()
+    direccion_envio_texto = models.CharField(max_length=200)
 
     nombre_destinatario = models.CharField(max_length=255)
     rut_destinatario = models.CharField(max_length=20)
     telefono_destinatario = models.CharField(max_length=20)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='paquetes')
     conductor = models.ForeignKey(Conductor, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
-    estado = models.ForeignKey(EstadoEntrega, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
     despachador = models.ForeignKey('Despachador', on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
 
 class Notificacion(models.Model):

@@ -4,6 +4,7 @@ from api.models import Usuario, Cliente
 from django.contrib.auth.models import Group
 from django.db import transaction
 from api.models import Usuario
+from api.exceptions import GroupNotConfiguredError
 
 class RegistroClienteForm(UserCreationForm):
     email = forms.EmailField(required=True, label="Correo electrónico")
@@ -42,9 +43,9 @@ class RegistroClienteForm(UserCreationForm):
                 usuario.save()
 
                 try:
-                    grupo = Group.objects.get(name='Cliente')
+                    grupo = Group.objects.get(name='cliente')
                 except Group.DoesNotExist:
-                    raise ValueError("El grupo 'Cliente' no está configurado en la base de datos.")
+                    raise GroupNotConfiguredError("El grupo 'cliente' no está configurado en la base de datos.")
 
                 usuario.groups.add(grupo)
 

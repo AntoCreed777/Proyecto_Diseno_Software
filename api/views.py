@@ -2,21 +2,28 @@ from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from .models import (
     Usuario, Cliente, Conductor, Despachador, Admin,
-    Vehiculo, Ruta, ConductorPoseeRuta, EstadoEntrega,
-    Paquete, Notificacion
+    Vehiculo, Ruta, ConductorPoseeRuta, Paquete, Notificacion
 )
 from .serializers import (
     UsuarioSerializer, ClienteSerializer,
     ConductorSerializer, DespachadorSerializer, AdminSerializer,
-    VehiculoSerializer, RutaSerializer,
-    ConductorPoseeRutaSerializer, EstadoEntregaSerializer,
+    VehiculoSerializer, RutaSerializer, ConductorPoseeRutaSerializer,
     PaqueteSerializer, NotificacionSerializer
 )
+from rest_framework.response import Response
+from rest_framework import status
 
 class UsuarioViewSet(ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     #permission_classes = [IsAuthenticated]
+
+    
+    def create(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "No puedes crear usuarios directamente desde esta API."}, 
+            status=status.HTTP_403_FORBIDDEN
+        )
 
 class ClienteViewSet(ModelViewSet):
     queryset = Cliente.objects.all()
@@ -51,11 +58,6 @@ class RutaViewSet(ModelViewSet):
 class ConductorPoseeRutaViewSet(ModelViewSet):
     queryset = ConductorPoseeRuta.objects.all()
     serializer_class = ConductorPoseeRutaSerializer
-    #permission_classes = [IsAuthenticated]
-
-class EstadoEntregaViewSet(ReadOnlyModelViewSet):
-    queryset = EstadoEntrega.objects.all()
-    serializer_class = EstadoEntregaSerializer
     #permission_classes = [IsAuthenticated]
 
 class PaqueteViewSet(ModelViewSet):

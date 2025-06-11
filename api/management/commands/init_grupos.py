@@ -3,8 +3,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from api.models import (
     Usuario, Cliente, Conductor, Despachador, Admin, Vehiculo,
-    Ruta, ConductorPoseeRuta, EstadoEntrega, Paquete,
-    Notificacion
+    Ruta, ConductorPoseeRuta, Paquete, Notificacion
 )
 
 class Command(BaseCommand):
@@ -12,10 +11,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Crear grupos (una vez)
-        cliente_group, _ = Group.objects.get_or_create(name='Cliente')
-        conductor_group, _ = Group.objects.get_or_create(name='Conductor')
-        despachador_group, _ = Group.objects.get_or_create(name='Despachador')
-        admin_group, _ = Group.objects.get_or_create(name='Admin')
+        cliente_group, _ = Group.objects.get_or_create(name='cliente')
+        conductor_group, _ = Group.objects.get_or_create(name='conductor')
+        despachador_group, _ = Group.objects.get_or_create(name='despachador')
+        admin_group, _ = Group.objects.get_or_create(name='admin')
 
         def obtener_permisos(modelo):
             """
@@ -41,7 +40,6 @@ class Command(BaseCommand):
         permisos_vehiculo = obtener_permisos(Vehiculo)
         permisos_ruta = obtener_permisos(Ruta)
         permisos_conductorposeeruta = obtener_permisos(ConductorPoseeRuta)
-        permisos_estadoentrega = obtener_permisos(EstadoEntrega)
         permisos_paquete = obtener_permisos(Paquete)
         permisos_notificacion = obtener_permisos(Notificacion)
 
