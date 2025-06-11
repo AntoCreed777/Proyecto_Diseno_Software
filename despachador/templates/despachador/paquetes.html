@@ -1,0 +1,283 @@
+{% extends "despachador/template_base.html" %}
+
+{% block title %}
+Paquetes
+{% endblock %}
+
+{% block content %}
+<form method="get" id="filtro-paquetes" class="filter-box">
+    <input type="number" name="id" placeholder="ID del paquete" value="{{ request.GET.id }}">
+    <input type="date" name="fecha" placeholder="Fecha" value="{{ request.GET.fecha }}">
+    <select name="estado">
+        <option value="">Todos los estados</option>
+        {% for estado in estados %}
+          <option value="{{ estado.estado }}" {% if request.GET.estado == estado.estado %}selected{% endif %}>{{ estado.estado }}</option>
+        {% endfor %}
+    </select>
+    <select name="conductor">
+        <option value="">Todos los conductores</option>
+        {% for conductor in conductores %}
+          <option value="{{ conductor.id }}" {% if request.GET.conductor == conductor.id|stringformat:"s" %}selected{% endif %}>{{ conductor.usuario.first_name }} {{ conductor.usuario.last_name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Buscar</button>
+    <button type="button" id="btn-registrar-paquete">Registrar nuevo paquete</button>
+</form>
+
+<!-- Modal para registrar paquete -->
+<div id="modal-paquete" class="modal-paquete" {% if show_paquete_modal %}style="display:block"{% endif %}>
+  <div class="modal-paquete-content">
+    <h2>Registrar nuevo paquete</h2>
+    <div id="paquete-messages">
+      {% if errors_paquete %}
+        {% for field, errors in errors_paquete.items %}
+          {% for error in errors %}
+            <div class="error-box">
+              <strong>Error en {{ field }}:</strong>
+              <br>
+              {{ error }}
+            </div>
+          {% endfor %}
+        {% endfor %}
+      {% endif %}
+    </div>
+    <form id="form-paquete" method="post" action="{% url 'registrar_paquete_despachador' %}">
+      {% csrf_token %}
+      <label>Nombre del cliente:</label>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <select name="cliente_id" required style="flex: 1;">
+          <option value="">Seleccione un cliente</option>
+          {% for cliente in clientes %}
+            <option value = "{{cliente.id}}">{{cliente.usuario.first_name}} {{cliente.usuario.last_name}}</option>
+          {% endfor %}
+        </select>
+        <button type="button" id="btn-registrar-cliente" style="padding: 8px 12px;">Registrar cliente</button>
+      </div>
+      <label>Nombre del destinatario:</label>
+      <input type="text" name="nombre_destinatario" required><br>
+      <label>Rut del destinatario:</label>
+      <input type="text" name="rut_destinatario" required><br>
+      <label>Teléfono del destinatario:</label>
+      <input type="text" name="telefono_destinatario" required><br>
+      <label>Dirección de envío:</label>
+      <input type="text" name="direccion_envio_texto" required><br>
+      <label>Dimensiones:</label>
+      <input type="text" name="dimensiones" required><br>
+      <label>Peso (kg):</label>
+      <input type="number" step="0.1" name="peso" required><br>
+      <button type="submit">Registrar</button>
+      <button type="button" id="cerrar-modal">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para registrar cliente -->
+<div id="modal-cliente" class="modal-paquete" {% if show_cliente_modal %}style="display:block"{% endif %}>
+  <div class="modal-paquete-content">
+    <h2>Registrar nuevo cliente</h2>
+    <div id="cliente-messages">
+      {% if messages %}
+        {% for mensaje in messages %}
+          <div class="error-box">
+            <strong>Error al registrar cliente:</strong>
+            <br>
+            {{ mensaje }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <form id="form-cliente" method="post" action="{% url 'registrar_cliente_despachador' %}">
+      {% csrf_token %}
+      <label>Nombre:</label>
+      <input type="text" name="nombre" required>
+      <label>Apellido:</label>
+      <input type="text" name="apellido" required>
+      <Label>Nombre de usuario:</label>
+      <input type="text" name="username" required>
+      <Label>Correo electrónico:</Label>
+      <input type="text" name="correo">
+      <label>Dirección:</label>
+      <input type="text" name="direccion">
+      <label>Teléfono:</label>
+      <input type="text" name="telefono">
+      <label>Contraseña:</label>
+      <input type="password" name="contraseña" required>
+      <label>Confirmar contraseña:</label>
+      <input type="password" name="confirmar_contraseña" required>
+      <div class="modal-buttons">
+        <button type="submit">Registrar</button>
+        <button type="button" id="cerrar-modal-cliente">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.getElementById('btn-registrar-paquete').onclick = function() {
+  document.getElementById('modal-paquete').style.display = 'block';
+};
+document.getElementById('cerrar-modal').onclick = function() {
+  document.getElementById('modal-paquete').style.display = 'none';
+  // Limpiar mensajes de error
+  document.getElementById('paquete-messages').innerHTML = '';
+  if (window.location.pathname !== '/despachador/paquetes/') {
+    window.history.replaceState({}, '', '/despachador/paquetes/');
+  }
+};
+document.getElementById('btn-registrar-cliente').onclick = function() {
+  
+  document.getElementById('modal-cliente').style.display = 'block';
+};
+document.getElementById('cerrar-modal-cliente').onclick = function() {
+  document.getElementById('modal-cliente').style.display = 'none';
+  // Limpiar mensajes de error
+  document.getElementById('cliente-messages').innerHTML = '';
+  if (window.location.pathname !== '/despachador/paquetes/') {
+    window.history.replaceState({}, '', '/despachador/paquetes/');
+  }
+};
+</script>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Estado del paquete</th>
+            <th>Cliente</th>
+            <th>Dirección</th>
+            <th>Conductor</th>
+            <th>Detalles</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for paquete in paquetes %}
+      <tr>
+          <td>{{ paquete.id }}</td>
+          <td>{{ paquete.fecha_registro }}</td>
+          <td>{%if paquete.estado == 'En_Bodega'%} En bodega {%elif paquete.estado == 'En_ruta'%} En ruta {%elif paquete.estado == 'Entregado'%} Entregado {%endif%} </td>
+          <td>{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}</td>
+          <td>{{ paquete.direccion_envio_texto}}</td>
+          <td>{{ paquete.conductor.usuario.first_name }} {{paquete.conductor.usuario.last_name}}</td>
+          <td>
+            <button type="button"
+                    class="btn-ver-detalles"
+                    paquete-id="{{ paquete.id }}"
+                    fecha="{{ paquete.fecha_envio }}"
+                    cliente="{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}"
+                    nombre-receptor="{{ paquete.nombre_destinatario }}"
+                    rut-receptor="{{ paquete.rut_destinatario }}"
+                    telefono-receptor="{{ paquete.telefono_destinatario }}"
+                    direccion="{{ paquete.direccion_envio_texto }}"
+                    estado="{%if paquete.estado == 'En_Bodega'%} En bodega {%elif paquete.estado == 'En_ruta'%} En ruta {%elif paquete.estado == 'Entregado'%} Entregado {%endif%}"
+                    peso="{{ paquete.peso }}"
+                    dimensiones="{{ paquete.dimensiones }}"
+                    conductor="{{ paquete.conductor.usuario.first_name }} {{ paquete.conductor.usuario.last_name }}">
+              Ver detalles
+            </button>
+          </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<!-- Modal para ver detalles del paquete -->
+<div id="modal-ver-detalles" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Detalles del paquete</h2>
+    <p><strong>ID:</strong> <span id="detalle-id"> </span></p>
+    <p><strong>Fecha de envío:</strong> <span id="detalle-fecha"></span></p>
+    <p><strong>Cliente:</strong> <span id="detalle-cliente"></span></p>
+    <p><strong>Nombre receptor:</strong> <span id="detalle-nombre-receptor"></span></p>
+    <p><strong>Rut del receptor:</strong> <span id="detalle-rut-receptor"></span></p>
+    <p><strong>Teléfono del receptor:</strong> <span id="detalle-telefono-receptor"></span></p>
+    <p><strong>Dirección de envío:</strong> <span id="detalle-direccion"></span></p>
+    <p><strong>Estado del paquete:</strong> <span id="detalle-estado"></span>
+    <button type="button" id="btn-cambiar-estado" style="margin-left:10px;">Cambiar estado</button>
+    </p>
+    <p><strong>Peso:</strong> <span id="detalle-peso"></span> kg</p>
+    <p><strong>Dimensiones:</strong> <span id="detalle-dimensiones"></span></p>
+    <p><strong>Conductor asignado:</strong> <span id="detalle-conductor"></span>
+    <button type="button" id="btn-asignar-conductor" style="margin-left:10px;">Asignar conductor</button>
+    </p>
+    
+    <button type="button" id="cerrar-detalles">Cerrar</button>
+  </div>
+</div>
+<!-- Modal para asignar conductor -->
+<div id="modal-asignar-conductor" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Asignar conductor</h2>
+    <form id="form-asignar-conductor" method="post" action="{% url 'asignar_conductor_despachador' %}">
+      {% csrf_token %}
+      <input type="hidden" name="paquete_id" id="asignar-paquete-id">
+      <label>Seleccione un conductor:</label>
+      <select name="conductor_id" required>
+        <option value="">Seleccione un conductor</option>
+        {% for conductor in conductores %}
+          <option value="{{ conductor.id }}">{{ conductor.usuario.first_name }} {{ conductor.usuario.last_name }} - {{ conductor.estado}}</option>
+        {% endfor %}
+      </select>
+      <div class="modal-buttons">
+        <button type="submit">Asignar</button>
+        <button type="button" id="cerrar-modal-asignar">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Modal para cambiar estado -->
+<div id="modal-cambiar-estado" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Cambiar estado del paquete</h2>
+    <form id="form-cambiar-estado" method="post" action="{% url 'cambiar_estado_paquete' %}">
+      {% csrf_token %}
+      <input type="hidden" name="paquete_id" id="cambiar-estado-paquete-id">
+      <label>Seleccione nuevo estado:</label>
+      <select name="estado" required>
+        <option value="">Seleccione un estado</option>
+          <option value="En_Bodega">En bodega</option>
+          <option value="En_ruta">En ruta</option>
+          <option value="Entregado">Entregado</option>
+      </select>
+      <div class="modal-buttons">
+        <button type="submit">Cambiar</button>
+        <button type="button" id="cerrar-modal-cambiar-estado">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
+  btn.onclick = function() {
+    document.getElementById('detalle-id').textContent = btn.getAttribute('paquete-id');
+    document.getElementById('detalle-fecha').textContent = btn.getAttribute('fecha');
+    document.getElementById('detalle-cliente').textContent = btn.getAttribute('cliente');
+    document.getElementById('detalle-nombre-receptor').textContent = btn.getAttribute('nombre-receptor');
+    document.getElementById('detalle-rut-receptor').textContent = btn.getAttribute('rut-receptor');
+    document.getElementById('detalle-telefono-receptor').textContent = btn.getAttribute('telefono-receptor');
+    document.getElementById('detalle-direccion').textContent = btn.getAttribute('direccion');
+    document.getElementById('detalle-estado').textContent = btn.getAttribute('estado');
+    document.getElementById('detalle-peso').textContent = btn.getAttribute('peso');
+    document.getElementById('detalle-dimensiones').textContent = btn.getAttribute('dimensiones');
+    document.getElementById('detalle-conductor').textContent = btn.getAttribute('conductor');
+
+    document.getElementById('modal-ver-detalles').style.display = 'block';
+  };
+});
+document.getElementById('cerrar-detalles').onclick = function() {
+  document.getElementById('modal-ver-detalles').style.display = 'none';
+};
+document.getElementById('btn-asignar-conductor').onclick = function() {
+  // Pasa el ID del paquete al modal de asignación
+  document.getElementById('asignar-paquete-id').value = document.getElementById('detalle-id').textContent.trim();
+  document.getElementById('modal-asignar-conductor').style.display = 'block';
+};
+document.getElementById('cerrar-modal-asignar').onclick = function() {
+  document.getElementById('modal-asignar-conductor').style.display = 'none';
+};
+document.getElementById('btn-cambiar-estado').onclick = function() {
+  document.getElementById('cambiar-estado-paquete-id').value = document.getElementById('detalle-id').textContent.trim();
+  document.getElementById('modal-cambiar-estado').style.display = 'block';
+};
+document.getElementById('cerrar-modal-cambiar-estado').onclick = function() {
+  document.getElementById('modal-cambiar-estado').style.display = 'none';
+};
+</script>
+{% endblock %}

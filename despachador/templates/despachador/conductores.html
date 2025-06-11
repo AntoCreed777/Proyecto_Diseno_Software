@@ -1,0 +1,84 @@
+{% extends "despachador/template_base.html" %}
+
+{% block title %}
+Conductores
+{% endblock %}
+
+{% block content %}
+<div class="filter-box">
+    <form method="get" id="filtro-conductores" class="filter-box">
+        <input type="number" name="id" placeholder="ID del conductor" value="{{ request.GET.id }}">
+        <input type="text" name="nombre" placeholder="Nombre" value="{{ request.GET.nombre }}">
+        <select name="estado">
+            <option value="">Todos los estados</option>
+            <option value="en_ruta" {% if request.GET.estado == "en_ruta" %}selected{% endif %}>En Ruta</option>
+            <option value="disponible" {% if request.GET.estado == "disponible" %}selected{% endif %}>Disponible</option>
+            <option value="no disponible" {% if request.GET.estado == "no disponible" %}selected{% endif %}>No Disponible</option>
+        </select>
+        <input type="text" name="vehiculo" placeholder="Patente vehículo" value="{{ request.GET.vehiculo }}">
+        <button type="submit">Buscar</button>
+    </form>
+</div>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre conductor</th>
+            <th>Patente vehículo</th>
+            <th>Estado</th>
+            <th>Detalles</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for conductor in conductores %}
+        <tr>
+            <td>{{ conductor.id }}</td>
+            <td>{{ conductor.usuario.first_name }} {{ conductor.usuario.last_name }}</td>
+            <td>{{ conductor.vehiculo.patente }}</td>
+            <td>{{ conductor.estado }}</td>
+            <td>
+                <button type="button"
+                        class="btn-ver-detalles"
+                        conductor-id="{{ conductor.id }}"
+                        nombre="{{ conductor.usuario.first_name }} {{ conductor.usuario.last_name }}"
+                        correo="{{ conductor.usuario.email }}"
+                        telefono="{{ conductor.telefono }}"
+                        patente="{{ conductor.vehiculo.matricula }}"
+                        estado="{{ conductor.estado }}">
+                    Ver detalles
+                </button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<!--Modal para ver detalles del conductor-->
+<div id="modal-detalles-conductor" class="modal-paquete" style="display:none;">
+    <div class="modal-paquete-content">
+        <h2>Detalles del Conductor</h2>
+        <p><strong>ID:</strong> <span id="detalle-id"></span></p>
+        <p><strong>Nombre:</strong> <span id="detalle-nombre"></span></p>
+        <p><strong>Correo:</strong> <span id="detalle-correo"></span></p>
+        <p><strong>Teléfono:</strong> <span id="detalle-telefono"></span></p>
+        <p><strong>Patente del vehículo:</strong> <span id="detalle-patente"></span></p>
+        <p><strong>Estado:</strong> <span id="detalle-estado"></span></p>
+        <button type="button" id="cerrar-detalles">Cerrar</button>
+    </div>
+</div>
+<script>
+document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
+    btn.onclick = function() {
+        document.getElementById('detalle-id').textContent = this.getAttribute('conductor-id');
+        document.getElementById('detalle-nombre').textContent = this.getAttribute('nombre');
+        document.getElementById('detalle-correo').textContent = this.getAttribute('correo');
+        document.getElementById('detalle-telefono').textContent = this.getAttribute('telefono');
+        document.getElementById('detalle-patente').textContent = this.getAttribute('patente');
+        document.getElementById('detalle-estado').textContent = this.getAttribute('estado');
+        document.getElementById('modal-detalles-conductor').style.display = 'block';
+    };
+});
+document.getElementById('cerrar-detalles').onclick = function() {
+    document.getElementById('modal-detalles-conductor').style.display = 'none';
+};
+</script>
+{% endblock %}
