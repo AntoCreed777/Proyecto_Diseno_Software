@@ -3,19 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maps test</title>
+    <title>Maps</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator/dist/leaflet.polylineDecorator.min.js"></script>
 </head>
 
 <body>
-    <div id="map" style="height: 500px;"></div>     <!-- Leaflet.js busca el identificador "map" para inicializar el mapa -->
+    <div id="map" style="height: 500px;"></div>
+
+    <!-- Archivos de JavaScript externos -->
     <script src="../static/js/polyline.js"></script>
     <script src="../static/js/map.js"></script>
+    
     <script>
-        const nodos = JSON.parse('{{ nodos|escapejs }}'); // Cargar nodos desde el contexto
-        calcularRutaEntreNodos(nodos);
+        // Variables pasadas desde el servidor
+        const inicio = '{{ inicio|escapejs }}';
+        const destino = '{{ destino|escapejs }}';
+
+        // Invocar la función desde el archivo externo para calcular la ruta
+        (async function () {
+            const coordInicio = await obtenerCoordenadas(inicio);
+            const coordDestino = await obtenerCoordenadas(destino);
+
+            if (coordInicio && coordDestino) {
+                // Se retorna al origen
+                calcularRutaEntreNodos([coordInicio, coordDestino, coordInicio]);
+            } else {
+                console.error("No se pudieron obtener las coordenadas de inicio o destino.");
+            }
+        })();
     </script>
 </body>
 </html>

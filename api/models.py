@@ -133,13 +133,13 @@ class Paquete(models.Model):
     )
 
     # Ubicacion actual
-    ubicacion_actual_lat = models.FloatField()
-    ubicacion_actual_lng = models.FloatField()
+    ubicacion_actual_lat = models.FloatField(null=True, blank=True)
+    ubicacion_actual_lng = models.FloatField(null=True, blank=True)
     ubicacion_actual_texto =  models.CharField(max_length=200)
 
     # Direccion envio
-    direccion_envio_lat = models.FloatField()
-    direccion_envio_lng = models.FloatField()
+    direccion_envio_lat = models.FloatField(null=True, blank=True)
+    direccion_envio_lng = models.FloatField(null=True, blank=True)
     direccion_envio_texto = models.CharField(max_length=200)
 
     nombre_destinatario = models.CharField(max_length=255)

@@ -79,7 +79,6 @@ Pedidos
             </p>
             <p><strong>Peso:</strong> <span id="detalle-peso"></span> kg</p>
             <p><strong>Dimensiones:</strong> <span id="detalle-dimensiones"></span></p>
-            <p><strong>Conductor asignado:</strong> <span id="detalle-conductor"></span>
             
             <div class="modal-buttons" style="margin-top: 20px;">
                 <button type="button" id="btn-ver-mapa">Ver en mapa</button>
@@ -111,10 +110,10 @@ Pedidos
 </div>
 <script>
 document.getElementById('btn-ver-mapa').onclick = function() {
-    // Obtener el ID del paquete
     const paqueteId = document.getElementById('detalle-id').textContent.trim();
-    // Redirigir a mapas.html con el ID del paquete como parámetro
-    window.location.href = "{% url 'conductor:mapa' %}?paquete_id=" + paqueteId;
+    const url = `{% url 'conductor:mapa' %}?id=${encodeURIComponent(paqueteId)}`;
+
+    window.location.href = url;
 };
 
 document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
@@ -129,7 +128,6 @@ document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
     document.getElementById('detalle-estado').textContent = btn.getAttribute('estado');
     document.getElementById('detalle-peso').textContent = btn.getAttribute('peso');
     document.getElementById('detalle-dimensiones').textContent = btn.getAttribute('dimensiones');
-    document.getElementById('detalle-conductor').textContent = btn.getAttribute('conductor');
 
     document.getElementById('modal-ver-detalles').style.display = 'block';
   };

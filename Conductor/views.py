@@ -1,13 +1,12 @@
-from django.http import HttpResponse
-from django.template import Template, Context
-from django.template import loader
+
 from django.shortcuts import render, redirect
-from django.utils import timezone
-from api.models import ConductorPoseeRuta, Paquete, Notificacion, Cliente, Conductor, Ruta
-from api.serializers import NotificacionSerializer
-from datetime import datetime, timedelta 
-from django.db.models import Q, Avg, Sum, Count
+from api.models import ConductorPoseeRuta, Paquete, Cliente, Conductor, Ruta
+from datetime import datetime 
+from django.db.models import Sum
 from accounts.views import notificar_cambio_estado_paquete
+from urllib.parse import urlencode
+from django.shortcuts import redirect, get_object_or_404
+from django.urls import reverse
 
 
 def inicio(request):
@@ -136,14 +135,23 @@ def cambiar_estado_paquete_conductor(request):
     return redirect('conductor:paquetes')
 
 def mapa(request):
-    #conductor = Conductor.objects.get(usuario=request.user)             #DEPENDE DE ESTAR LOGEADO, ESTE DEBERÍA USARSE
-    conductor = getattr(request.user, 'conductor', None)#DEPENDE DE ESTAR LOGEADO, SOLO PARA VER LA INTERFAZ
-    paquetes = Paquete.objects.filter(conductor=conductor)
-
     id_paquete = request.GET.get('id')
-    direccion_envio = request.GET.get('fecha')
-    direccion_actual = request.GET.get('estado')
-    
-    return render(request, 'Conductor/mapa.html', {
-        'paquetes_info': paquete_info,
+
+    if not id_paquete:
+        return redirect('conductor:lista_paquetes')
+
+    # Obtener el paquete, o lanzar 404 si no existe
+    paquete_info = get_object_or_404(Paquete, id=id_paquete)
+
+    inicio = paquete_info.ubicacion_actual_texto
+    destino = paquete_info.direccion_envio_texto
+
+    # Armar los parámetros para la URL
+    params = urlencode({
+        'inicio': inicio,
+        'destino': destino
     })
+
+    url = reverse('maps:map') + '?' + params
+
+    return redirect(url)
