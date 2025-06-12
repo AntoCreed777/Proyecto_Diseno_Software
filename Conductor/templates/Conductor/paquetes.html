@@ -12,9 +12,9 @@ Pedidos
     <input type="date" name="fecha" placeholder="Fecha" value="{{ request.GET.fecha }}">
     <select name="estado">
         <option value="">Todos los estados</option>
-        {% for estado in estados %}
-          <option value="{{ estado.estado }}" {% if request.GET.estado == estado.estado %}selected{% endif %}>{{ estado.estado }}</option>
-        {% endfor %}
+        <option value="En_Bodega">En bodega</option>
+        <option value="En_ruta">En ruta</option>
+        <option value="Entregado">Entregados</option>
     </select>
     <button type="submit">Buscar</button>
 </form>
@@ -39,7 +39,7 @@ Pedidos
             <tr>
                 <td>{{ paquete.id }}</td>
                 <td>{{ paquete.fecha_registro }}</td>
-                <td>{%if paquete.estado == 'en_Bodega'%} En bodega {%elif paquete.estado == 'en_ruta'%} En ruta {%elif paquete.estado == 'entregado'%} Entregado {%endif%} </td>
+                <td>{%if paquete.estado == 'En_Bodega'%} En bodega {%elif paquete.estado == 'En_ruta'%} En ruta {%elif paquete.estado == 'Entregado'%} Entregado {%endif%} </td>
                 <td>{{ paquete.cliente.usuario.first_name }} {{ paquete.cliente.usuario.last_name }}</td>
                 <td>{{ paquete.direccion_envio_texto}}</td>
                 <td>
@@ -54,7 +54,8 @@ Pedidos
                             direccion="{{ paquete.direccion_envio_texto }}"
                             estado="{%if paquete.estado == 'En_Bodega'%} En bodega {%elif paquete.estado == 'En_ruta'%} En ruta {%elif paquete.estado == 'Entregado'%} Entregado {%endif%}"
                             peso="{{ paquete.peso }}"
-                            dimensiones="{{ paquete.dimensiones }}"
+                            dimensiones="{{ paquete.largo }} x {{paquete.ancho}} x {{paquete.alto}}"
+                            conductor="{{ paquete.conductor.usuario.first_name }} {{ paquete.conductor.usuario.last_name }}">
                     Ver detalles
                     </button>
                 </td>
@@ -62,8 +63,77 @@ Pedidos
              {% endfor %}
         </tbody>
     </table>
+    <div id="modal-ver-detalles" class="modal-paquete">
+        <div class="modal-paquete-content">
+            <h2>Detalles del paquete</h2>
+            <p><strong>ID:</strong> <span id="detalle-id"> </span></p>
+            <p><strong>Fecha de envío:</strong> <span id="detalle-fecha"></span></p>
+            <p><strong>Cliente:</strong> <span id="detalle-cliente"></span></p>
+            <p><strong>Nombre receptor:</strong> <span id="detalle-nombre-receptor"></span></p>
+            <p><strong>Rut del receptor:</strong> <span id="detalle-rut-receptor"></span></p>
+            <p><strong>Teléfono del receptor:</strong> <span id="detalle-telefono-receptor"></span></p>
+            <p><strong>Dirección de envío:</strong> <span id="detalle-direccion"></span></p>
+            <p><strong>Estado del paquete:</strong> <span id="detalle-estado"></span>
+            <button type="button" id="btn-cambiar-estado" style="margin-left:10px;">Cambiar estado</button>
+            </p>
+            <p><strong>Peso:</strong> <span id="detalle-peso"></span> kg</p>
+            <p><strong>Dimensiones:</strong> <span id="detalle-dimensiones"></span></p>
+            <p><strong>Conductor asignado:</strong> <span id="detalle-conductor"></span>
+            
+            <button type="button" id="cerrar-detalles">Cerrar</button>
+        </div>
+    </div>
 </div>
+<!-- Modal para cambiar estado -->
+<div id="modal-cambiar-estado" class="modal-paquete">
+  <div class="modal-paquete-content">
+    <h2>Cambiar estado del paquete</h2>
+    <form id="form-cambiar-estado" method="post" action="{% url 'conductor:cambiar_estado_paquete_conductor' %}">
+      {% csrf_token %}
+      <input type="hidden" name="paquete_id" id="cambiar-estado-paquete-id">
+      <label>Seleccione nuevo estado:</label>
+      <select name="estado" required>
+        <option value="">Seleccione un estado</option>
+          <option value="En_Bodega">En bodega</option>
+          <option value="En_ruta">En ruta</option>
+          <option value="Entregado">Entregado</option>
+      </select>
+      <div class="modal-buttons">
+        <button type="submit">Cambiar</button>
+        <button type="button" id="cerrar-modal-cambiar-estado">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
+  btn.onclick = function() {
+    document.getElementById('detalle-id').textContent = btn.getAttribute('paquete-id');
+    document.getElementById('detalle-fecha').textContent = btn.getAttribute('fecha');
+    document.getElementById('detalle-cliente').textContent = btn.getAttribute('cliente');
+    document.getElementById('detalle-nombre-receptor').textContent = btn.getAttribute('nombre-receptor');
+    document.getElementById('detalle-rut-receptor').textContent = btn.getAttribute('rut-receptor');
+    document.getElementById('detalle-telefono-receptor').textContent = btn.getAttribute('telefono-receptor');
+    document.getElementById('detalle-direccion').textContent = btn.getAttribute('direccion');
+    document.getElementById('detalle-estado').textContent = btn.getAttribute('estado');
+    document.getElementById('detalle-peso').textContent = btn.getAttribute('peso');
+    document.getElementById('detalle-dimensiones').textContent = btn.getAttribute('dimensiones');
+    document.getElementById('detalle-conductor').textContent = btn.getAttribute('conductor');
 
+    document.getElementById('modal-ver-detalles').style.display = 'block';
+  };
+});
+document.getElementById('cerrar-detalles').onclick = function() {
+  document.getElementById('modal-ver-detalles').style.display = 'none';
+};
+document.getElementById('btn-cambiar-estado').onclick = function() {
+  document.getElementById('cambiar-estado-paquete-id').value = document.getElementById('detalle-id').textContent.trim();
+  document.getElementById('modal-cambiar-estado').style.display = 'block';
+};
+document.getElementById('cerrar-modal-cambiar-estado').onclick = function() {
+  document.getElementById('modal-cambiar-estado').style.display = 'none';
+};
+</script>
 <style>
     .container {
         font-family: Arial, sans-serif;
@@ -144,5 +214,62 @@ Pedidos
     .detalles-link:hover {
         text-decoration: underline;
     }
+    .modal-paquete {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0,0,0,0.4);
+            z-index: 1000;
+        }
+        .modal-paquete-content {
+            background: white;
+            width: 400px;
+            margin: 10vh auto;
+            padding: 24px 32px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-paquete-content label {
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+        .modal-paquete-content input[type="text"],
+        .modal-paquete-content input[type="number"],
+        .modal-paquete-content input[type="password"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .modal-paquete-content .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .modal-paquete-content button[type="submit"] {
+            background:rgb(155, 155, 155);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .modal-paquete-content button[type="button"] {
+            background: #e0e0e0;
+            color: #333;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 </style>
 {% endblock %}

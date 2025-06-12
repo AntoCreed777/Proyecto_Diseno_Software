@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.template import Template, Context
 from django.template import loader
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
 from api.models import ConductorPoseeRuta, Paquete, Notificacion, Cliente, Conductor, Ruta
 from api.serializers import NotificacionSerializer
@@ -54,6 +54,7 @@ def paquetes(request):
     fecha = request.GET.get('fecha')
     estado = request.GET.get('estado')
     clientes = Cliente.objects.select_related('usuario').all()
+    conductores = Conductor.objects.select_related('usuario').all()
 
     if id_paquete:
         paquetes = paquetes.filter(id=id_paquete)
@@ -65,6 +66,7 @@ def paquetes(request):
     return render(request, 'Conductor/paquetes.html', {
         'clientes': clientes,
         'paquetes': paquetes.order_by('-id'),
+        'conductores':conductores,
     })
 
 def rendimiento(request):
@@ -122,3 +124,10 @@ def rendimiento(request):
         'distancia_total': round(distancia_total, 2),
         'dia_mas_productivo': dia_mas_productivo,
     })
+def cambiar_estado_paquete_conductor(request):
+    if request.method == 'POST':
+        paquete_id = request.POST.get('paquete_id')
+        paquete = Paquete.objects.get(id=paquete_id)
+        paquete.estado = request.POST.get('estado')
+        paquete.save()
+    return redirect('conductor:paquetes')

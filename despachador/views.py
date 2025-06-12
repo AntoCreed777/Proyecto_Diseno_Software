@@ -58,8 +58,21 @@ def conductores(request):
 
 def registrar_paquete(request):
     if request.method == 'POST':
+        dimensiones = request.POST.get('dimensiones', '')
+        try:
+            largo, ancho, alto = [float(x.strip()) for x in dimensiones.lower().replace(' ', '').split('x')]
+        except Exception:
+            messages.error(request, "Formato de dimensiones inválido. Use 'largo x ancho x alto'.")
+            return render(request, 'despachador/paquetes.html', {
+                'clientes': Cliente.objects.select_related('usuario').all(),
+                'paquetes': Paquete.objects.all().order_by('-id'),
+                'errors_paquete': {'dimensiones': ['Formato inválido. Use "largo x ancho x alto".']},
+                'show_paquete_modal': True,
+            })
         data = {
-            'dimensiones': request.POST.get('dimensiones'),
+            'largo': largo,
+            'ancho': ancho,
+            'alto': alto,
             'peso': request.POST.get('peso'),
             'ubicacion_actual_lat': 0.0,
             'ubicacion_actual_lng': 0.0,
@@ -101,7 +114,8 @@ def registrar_cliente(request):
             'usuario': usuario_data,
             'direccion_hogar': request.POST.get('direccion')
         }
-        serializer = ClienteSerializer(data=cliente_data)
+        serializer = ClienteSerializer(data=cliente_data,
+                                       context={'request': request})
         if serializer.is_valid():
             serializer.save()
         else:
