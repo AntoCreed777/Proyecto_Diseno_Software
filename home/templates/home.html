@@ -36,7 +36,7 @@
             {% endif %}
             {% if user.rol == 'conductor' %}
             <div class="contenedor">
-                <a class ="ingreso" href="{% url 'inicio_conductor' %}" >inicio conductor</a>
+                <a class ="ingreso" href="{% url 'conductor:inicio_conductor' %}" >inicio conductor</a>
             </div>
             {% endif %}
             {% if user.rol == 'despachador' %}
