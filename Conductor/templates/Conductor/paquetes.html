@@ -7,6 +7,7 @@ Pedidos
 {% block content %}
 <div class="container">
     <h1>Mis entregas</h1>
+
     <form method="get" id="filtro-paquetes" class="filter-box">
     <input type="number" name="id" placeholder="ID del paquete" value="{{ request.GET.id }}">
     <input type="date" name="fecha" placeholder="Fecha" value="{{ request.GET.fecha }}">
@@ -80,7 +81,10 @@ Pedidos
             <p><strong>Dimensiones:</strong> <span id="detalle-dimensiones"></span></p>
             <p><strong>Conductor asignado:</strong> <span id="detalle-conductor"></span>
             
-            <button type="button" id="cerrar-detalles">Cerrar</button>
+            <div class="modal-buttons" style="margin-top: 20px;">
+                <button type="button" id="btn-ver-mapa">Ver en mapa</button>
+                <button type="button" id="cerrar-detalles">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -106,6 +110,13 @@ Pedidos
   </div>
 </div>
 <script>
+document.getElementById('btn-ver-mapa').onclick = function() {
+    // Obtener el ID del paquete
+    const paqueteId = document.getElementById('detalle-id').textContent.trim();
+    // Redirigir a mapas.html con el ID del paquete como parámetro
+    window.location.href = "{% url 'conductor:mapa' %}?paquete_id=" + paqueteId;
+};
+
 document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
   btn.onclick = function() {
     document.getElementById('detalle-id').textContent = btn.getAttribute('paquete-id');

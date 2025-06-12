@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import inicio, paquetes, rendimiento, cambiar_estado_paquete_conductor
+from .views import inicio, paquetes, rendimiento, cambiar_estado_paquete_conductor, mapa
 
 app_name = 'conductor'
 urlpatterns = [
@@ -7,4 +7,5 @@ urlpatterns = [
     path('paquetes/', paquetes, name = 'paquetes'),
     path('rendimiento/', rendimiento, name = 'rendimiento'),
     path('cambiar-estado/', cambiar_estado_paquete_conductor, name='cambiar_estado_paquete_conductor'),
+    path('mapa/', mapa, name='mapa'),
 ]

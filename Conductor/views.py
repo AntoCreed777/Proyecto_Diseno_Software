@@ -125,6 +125,7 @@ def rendimiento(request):
         'distancia_total': round(distancia_total, 2),
         'dia_mas_productivo': dia_mas_productivo,
     })
+
 def cambiar_estado_paquete_conductor(request):
     if request.method == 'POST':
         paquete_id = request.POST.get('paquete_id')
@@ -133,3 +134,16 @@ def cambiar_estado_paquete_conductor(request):
         paquete.save()
         notificar_cambio_estado_paquete(paquete)
     return redirect('conductor:paquetes')
+
+def mapa(request):
+    #conductor = Conductor.objects.get(usuario=request.user)             #DEPENDE DE ESTAR LOGEADO, ESTE DEBERÍA USARSE
+    conductor = getattr(request.user, 'conductor', None)#DEPENDE DE ESTAR LOGEADO, SOLO PARA VER LA INTERFAZ
+    paquetes = Paquete.objects.filter(conductor=conductor)
+
+    id_paquete = request.GET.get('id')
+    direccion_envio = request.GET.get('fecha')
+    direccion_actual = request.GET.get('estado')
+    
+    return render(request, 'Conductor/mapa.html', {
+        'paquetes_info': paquete_info,
+    })
