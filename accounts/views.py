@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login
 from django.contrib import messages
 from .tokens import account_activation_token
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage, send_mail
 from django.template.loader import render_to_string
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -10,6 +10,7 @@ from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
 from .forms import RegistroClienteForm, CustomLoginForm
 from api.models import TiposRoles
+from django.conf import settings
 
 #Activacion del correo
 def activate(request, uidb64, token):
@@ -83,3 +84,21 @@ def registration(request):
           form = RegistroClienteForm()
 
      return render(request, 'registration.html', {'form': form})
+def notificar_cambio_estado_paquete(paquete):
+    cliente = paquete.cliente
+    usuario = cliente.usuario
+    asunto = f"Actualización de estado de tu paquete #{paquete.id}"
+    mensaje = (
+        f"Hola {usuario.first_name},\n\n"
+        f"El estado de tu paquete #{paquete.id} ha cambiado a: {paquete.get_estado_display()}.\n"
+        f"Dirección de envío: {paquete.direccion_envio_texto}\n"
+        f"Gracias por usar nuestro servicio."
+    )
+    destinatario = [usuario.email]
+    send_mail(
+        asunto,
+        mensaje,
+        settings.EMAIL_HOST_USER,
+        destinatario,
+        fail_silently=False,
+    )

@@ -7,6 +7,7 @@ from api.serializers import UsuarioSerializer, PaqueteSerializer, ClienteSeriali
 from rest_framework.exceptions import ValidationError
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from accounts.views import notificar_cambio_estado_paquete
 
 def inicio(request):
 
@@ -145,4 +146,5 @@ def cambiar_estado_paquete(request):
         paquete = Paquete.objects.get(id=paquete_id)
         paquete.estado = request.POST.get('estado')
         paquete.save()
+        notificar_cambio_estado_paquete(paquete)
     return redirect('paquetes_despachador')
