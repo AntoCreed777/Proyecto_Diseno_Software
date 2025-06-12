@@ -7,6 +7,7 @@ from api.models import ConductorPoseeRuta, Paquete, Notificacion, Cliente, Condu
 from api.serializers import NotificacionSerializer
 from datetime import datetime, timedelta 
 from django.db.models import Q, Avg, Sum, Count
+from accounts.views import notificar_cambio_estado_paquete
 
 
 def inicio(request):
@@ -130,4 +131,5 @@ def cambiar_estado_paquete_conductor(request):
         paquete = Paquete.objects.get(id=paquete_id)
         paquete.estado = request.POST.get('estado')
         paquete.save()
+        notificar_cambio_estado_paquete(paquete)
     return redirect('conductor:paquetes')

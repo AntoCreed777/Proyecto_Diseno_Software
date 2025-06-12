@@ -51,8 +51,17 @@
     <div class="sidebar">
         {% include "Conductor/navegacion/barra.html" %}
     </div>
-
     <div class="main-content">
+        <header style="display: flex; justify-content: space-between; align-items: center;">
+            <h1></h1>
+            <div>
+                <span>{{ user.username }}</span>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Cerrar sesión</button>
+                </form>
+            </div>
+        </header>
         {% block content %} {% endblock %}
     </div>
 </body>
