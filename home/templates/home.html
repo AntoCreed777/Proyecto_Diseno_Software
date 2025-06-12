@@ -44,15 +44,13 @@
                 <a class ="ingreso" href="{% url 'inicio_despachador' %}" >inicio despachador</a>
             </div>
             {% endif %}
+            {% if user.rol == 'cliente' %}
+            <div class="contenedor">
+                <a class ="ingreso" href="{% url 'inicio_cliente' %}" >inicio despachador</a>
+            </div>
+            {% endif %}
             
         </div>
-    </div>
-    <div class="contenedor2">
-        <form method="post">
-            {% csrf_token %}
-            <input type="text" class="numero_envio" name="accion" placeholder="N° paquete">
-            <input type="submit" class="ingresar" value="ingresar" >
-        </form>
     </div>
     <div class="contenedor3">
         <img src="../../static/img/camion.png" class ="imagenes">

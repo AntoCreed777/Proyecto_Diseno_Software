@@ -18,24 +18,32 @@ body {
     justify-content: flex-end; 
     align-items: center; 
     gap: 10px; 
-    z-index: 9999;
+    z-index: 9998;
 }
 .ingreso{
+    white-space: nowrap;
     color: white;
-    font-size: 2vh;
+    font-size: 15px;
     text-decoration: none;
 }
-.contenedor{
-    width: 10vh;
-    height: 5vh;
+.contenedor{    
     border-radius: 25px;
     background-color: #007ACC;
     border: 2px solid black;
     display: flex;
     justify-content: center;
     align-items: center; 
+    width: fit-content;
+    padding: 5px;    
+    height: 5vh;
     color: white;
-    font-size: 2vh;
+    font-size: 15px;
+}
+.nombre_empresa{
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9999;
 }
 .numero_envio{
     width: 300px;

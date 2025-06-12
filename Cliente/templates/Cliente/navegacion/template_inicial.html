@@ -78,7 +78,7 @@
 <body>
     <aside>
         <nav>
-            <a href="{% url 'inicio' %}" class ="{%if request.path == '/cliente/inicio/'%} active{%endif%}"> Inicio </a>
+            <a href="{% url 'inicio_cliente' %}" class ="{%if request.path == '/cliente/inicio/'%} active{%endif%}"> Inicio </a>
             <a href="{% url 'mis_pedidos' %}" class ="{%if request.path == '/cliente/mis_pedidos/'%} active{%endif%}"> Mis_Pedidos </a>
             <a href="{% url 'ayuda' %}" class ="{%if request.path == '/cliente/ayuda/'%} active{%endif%}"> Ayuda </a>
         </nav>
