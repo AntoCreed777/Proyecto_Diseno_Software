@@ -12,10 +12,14 @@ from .exceptions import GroupNotConfiguredError
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     rol = serializers.ChoiceField(choices=TiposRoles.choices, read_only=True)
+    is_superuser = serializers.SerializerMethodField()
 
     class Meta:
         model = Usuario
-        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'telefono', 'password', 'rol']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'telefono', 'password', 'rol', 'is_superuser']
+
+    def get_is_superuser(self, obj):
+        return obj.is_superuser
 
     def validate(self, attrs):
         if Usuario.objects.filter(username=attrs.get('username')).exists():
@@ -28,24 +32,38 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         from accounts.views import activarEmail
+        is_superuser = self.context.get('is_superuser', False)
         rol = self.context.get('rol')
         request = self.context.get('request')
         if rol not in dict(Usuario._meta.get_field('rol').choices):
             raise serializers.ValidationError({"rol": "Rol inválido."})
 
         password = validated_data.pop('password')
-        usuario = Usuario(**validated_data)
+
+        # Crear superusuario o usuario normal
+        if is_superuser:
+            usuario = Usuario.objects.create_superuser(
+                **validated_data,
+                password=password
+            )
+        else:
+            usuario = Usuario(**validated_data)
+            usuario.set_password(password)
+            usuario.save()
+
+        # Asignar rol
         usuario.rol = rol
-        usuario.set_password(password)
         usuario.save()
 
+        # Enviar correo
         activarEmail(request=request, user=usuario)
 
+        # Asignar grupo correspondiente
         try:
             grupo = Group.objects.get(name=rol)
+            usuario.groups.add(grupo)
         except Group.DoesNotExist:
             raise GroupNotConfiguredError(f"El grupo '{rol}' no está configurado en la base de datos.")
-        usuario.groups.add(grupo)
         
         return usuario
 
@@ -138,6 +156,7 @@ class AdminSerializer(serializers.ModelSerializer):
                 data=usuario_data, 
                 context={
                     'rol': TiposRoles.ADMIN,
+                    'is_superuser': True,
                     'request': self.context.get('request')
                 }
             )
