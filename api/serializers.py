@@ -8,7 +8,6 @@ from .models import (
 )
 from django.contrib.auth.models import Group
 from .exceptions import GroupNotConfiguredError
-from accounts.views import activarEmail
 
 class UsuarioSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -28,6 +27,7 @@ class UsuarioSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        from accounts.views import activarEmail
         rol = self.context.get('rol')
         request = self.context.get('request')
         if rol not in dict(Usuario._meta.get_field('rol').choices):

@@ -11,6 +11,7 @@ from django.contrib.auth import get_user_model
 from .forms import RegistroClienteForm, CustomLoginForm
 from api.models import TiposRoles
 from django.conf import settings
+from api.serializers import NotificacionSerializer
 
 #Activacion del correo
 def activate(request, uidb64, token):
@@ -102,3 +103,11 @@ def notificar_cambio_estado_paquete(paquete):
         destinatario,
         fail_silently=False,
     )
+    serializer = NotificacionSerializer(data={
+        'mensaje': mensaje,
+        'cliente': cliente.id
+    })
+    if serializer.is_valid():
+         serializer.save()
+    else:
+         pass
