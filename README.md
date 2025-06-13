@@ -66,7 +66,7 @@ python3 manage.py init_grupos
 > Para poblar la base de datos con datos de prueba puedes ejecutar el siguiente comando:
 > 
 > ```bash
-> python manage.py poblar_bd
+> python3 manage.py poblar_bd
 > ```
 > Esto creará automáticamente un cliente, un despachador, un conductor y un admin de ejemplo en la base de datos.
 
