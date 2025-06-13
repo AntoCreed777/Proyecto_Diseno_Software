@@ -17,22 +17,8 @@
     <script src="../static/js/map.js"></script>
     
     <script>
-        // Variables pasadas desde el servidor
-        const inicio = '{{ inicio|escapejs }}';
-        const destino = '{{ destino|escapejs }}';
-
-        // Invocar la función desde el archivo externo para calcular la ruta
-        (async function () {
-            const coordInicio = await obtenerCoordenadas(inicio);
-            const coordDestino = await obtenerCoordenadas(destino);
-
-            if (coordInicio && coordDestino) {
-                // Se retorna al origen
-                calcularRutaEntreNodos([coordInicio, coordDestino, coordInicio]);
-            } else {
-                console.error("No se pudieron obtener las coordenadas de inicio o destino.");
-            }
-        })();
+        const nodos = JSON.parse('{{ nodos|escapejs }}'); // Cargar nodos desde el contexto
+        calcularRutaEntreNodos(nodos);
     </script>
 </body>
 </html>

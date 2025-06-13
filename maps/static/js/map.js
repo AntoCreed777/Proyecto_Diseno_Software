@@ -291,17 +291,23 @@ async function calcularRutaEntreNodos(nodos, roundtrip = true) {
             return;
         }
 
+        // Si roundtrip es true, agregamos el primer nodo al final para cerrar el ciclo
+        let nodosRuta = [...nodos];
+        if (roundtrip) {
+            nodosRuta.push(nodos[0]);
+        }
+
         // Mostrar el nodo más cercano a los nodos
-        for (let i = 0; i < nodos.length; i++) {
-            const nodo = nodos[i];
+        for (let i = 0; i < nodosRuta.length; i++) {
+            const nodo = nodosRuta[i];
 
             const nodo_cercano = await mostrarNodoCercanoConMarcador(nodo.lat, nodo.lon, 50);
             if (nodo_cercano) {
-                nodos[i] = nodo_cercano; // Reemplazar el nodo original por el más cercano
+                nodosRuta[i] = nodo_cercano; // Reemplazar el nodo original por el más cercano
             }
         }
 
-        const coordenadas = nodos.map(nodo => `${nodo.lon},${nodo.lat}`).join(";");
+        const coordenadas = nodosRuta.map(nodo => `${nodo.lon},${nodo.lat}`).join(";");
 
         const routeUrl = `https://router.project-osrm.org/route/v1/driving/${coordenadas}?overview=full&steps=true`;
 
@@ -325,7 +331,6 @@ async function calcularRutaEntreNodos(nodos, roundtrip = true) {
         // Mostrar la distancia y duración de la ruta
         const routeSummary = routeData.routes[0];
         console.log(`Ruta calculada: ${routeSummary.distance / 1000} km en ${routeSummary.duration / 60} minutos.`);
-
 
         // Dibujar los pasos en el mapa y etiquetar las calles
         const steps = routeData.routes[0].legs.flatMap(leg => leg.steps);
