@@ -190,6 +190,10 @@ class ConductorPoseeRutaSerializer(serializers.ModelSerializer):
 
 
 class PaqueteSerializer(serializers.ModelSerializer):
+    ubicacion_actual_lat = serializers.FloatField(read_only=True, default=-36.8302049)
+    ubicacion_actual_lng = serializers.FloatField(read_only=True, default=-73.0372293)
+    ubicacion_actual_texto = serializers.CharField(read_only=True, default="Universidad de Concepcion, Concepcion, Bio Bio, Chile")
+
     class Meta:
         model = Paquete
         fields = '__all__'
