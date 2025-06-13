@@ -13,7 +13,7 @@ def map(request):
     if not inicio or not destino:
         messages.error(request, "Faltan parámetros en la solicitud.")
         return redirect(request.META.get('HTTP_REFERER', '/'))  # Redirige a la pagina de origen
-    
+
     try:
         inicio_coordenada = obtener_coordenadas(inicio)
         destino_coordenada = obtener_coordenadas(destino)
