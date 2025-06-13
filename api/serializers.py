@@ -187,6 +187,8 @@ class ConductorPoseeRutaSerializer(serializers.ModelSerializer):
         model = ConductorPoseeRuta
         fields = '__all__'
 
+
+
 class PaqueteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Paquete
@@ -195,7 +197,58 @@ class PaqueteSerializer(serializers.ModelSerializer):
     def validate_peso(self, value):
         if value <= 0:
             raise serializers.ValidationError("El peso debe ser mayor a 0.")
+        if value > 1000:
+            raise serializers.ValidationError("El peso no puede superar los 1000 kg.")
         return value
+
+    def validate_largo(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("El largo debe ser mayor a 0.")
+        if value > 300:
+            raise serializers.ValidationError("El largo no puede superar los 300 cm.")
+        return value
+
+    def validate_ancho(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("El ancho debe ser mayor a 0.")
+        if value > 300:
+            raise serializers.ValidationError("El ancho no puede superar los 300 cm.")
+        return value
+
+    def validate_alto(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("El alto debe ser mayor a 0.")
+        if value > 300:
+            raise serializers.ValidationError("El alto no puede superar los 300 cm.")
+        return value
+
+    def validate_nombre_destinatario(self, value):
+        if not value or len(value.strip()) == 0:
+            raise serializers.ValidationError("El nombre del destinatario es obligatorio.")
+        if len(value) > 255:
+            raise serializers.ValidationError("El nombre del destinatario no puede superar los 255 caracteres.")
+        return value
+
+    def validate_rut_destinatario(self, value):
+        if not value or len(value.strip()) == 0:
+            raise serializers.ValidationError("El RUT del destinatario es obligatorio.")
+        if len(value) > 20:
+            raise serializers.ValidationError("El RUT no puede superar los 20 caracteres.")
+        return value
+
+    def validate_direccion_envio_texto(self, value):
+        if not value or len(value.strip()) == 0:
+            raise serializers.ValidationError("La dirección de envío es obligatoria.")
+        if len(value) > 200:
+            raise serializers.ValidationError("La dirección de envío no puede superar los 200 caracteres.")
+        return value
+
+    def validate(self, attrs):
+        fecha_registro = attrs.get('fecha_registro')
+        fecha_entrega = attrs.get('fecha_entrega')
+        if fecha_registro and fecha_entrega and fecha_entrega < fecha_registro:
+            raise serializers.ValidationError("La fecha de entrega debe ser posterior a la fecha de registro.")
+        return attrs
 
 class NotificacionSerializer(serializers.ModelSerializer):
     class Meta:

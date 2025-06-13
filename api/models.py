@@ -118,13 +118,13 @@ class Paquete(models.Model):
     id = models.AutoField(primary_key=True)
 
     # Dimensiones
-    largo = models.FloatField(validators=[MinValueValidator(0.0)])
-    ancho = models.FloatField(validators=[MinValueValidator(0.0)])
-    alto = models.FloatField(validators=[MinValueValidator(0.0)])
+    largo = models.FloatField(validators=[MinValueValidator(0.01)])
+    ancho = models.FloatField(validators=[MinValueValidator(0.01)])
+    alto = models.FloatField(validators=[MinValueValidator(0.01)])
 
-    peso = models.FloatField()
+    peso = models.FloatField(validators=[MinValueValidator(0.01)])
     fecha_registro = models.DateTimeField(auto_now_add=True)
-    fecha_entrega = models.DateTimeField(auto_now_add=True)
+    fecha_entrega = models.DateTimeField(null=True, blank=True)
 
     estado = models.CharField(
         max_length=100,
@@ -144,7 +144,7 @@ class Paquete(models.Model):
 
     nombre_destinatario = models.CharField(max_length=255)
     rut_destinatario = models.CharField(max_length=20)
-    telefono_destinatario = models.CharField(max_length=20)
+    telefono_destinatario = PhoneNumberField()
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='paquetes')
     conductor = models.ForeignKey(Conductor, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
     despachador = models.ForeignKey('Despachador', on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
