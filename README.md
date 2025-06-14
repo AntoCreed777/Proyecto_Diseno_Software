@@ -2,6 +2,35 @@
 
 Este repositorio contiene el código fuente y las dependencias necesarias para el desarrollo del proyecto de Diseño de Software basado en Django.
 
+## Integrantes del grupo
+- [Antonio Jesus Benavides Puentes](https://github.com/AntoCreed777) **(2023455954)**
+- [Ariel Eduardo Cisternas Bustos](https://github.com/Arcisternas) **(2023456152)**
+- [Luis Ignacio Martinez Neira](https://github.com/Nachopex) **(2023427985)**
+- [Esteban Andres Navarrete Mella](https://github.com/Bandido209) **()**
+- [Joaquin Hernan Sandoval Reyes](https://github.com/joaqsandoval04) **(2023434493)**
+
+
+## Tecnologías utilizadas en el proyecto
+
+<div align="center">
+
+### Herramientas de desarrollo y control de versiones
+<a href="https://skillicons.dev">
+  <img src="https://skillicons.dev/icons?i=git,github,vscode&perline=5" />
+</a>
+
+### Base de datos y lenguaje de programación
+<a href="https://skillicons.dev">
+  <img src="https://skillicons.dev/icons?i=python,sqlite&perline=5" />
+</a>
+
+### Framework utilizado
+<a href="https://skillicons.dev">
+  <img src="https://skillicons.dev/icons?i=django&perline=5" />
+</a>
+
+</div>
+
 ## Requisitos previos
 
 - Python 3 instalado
