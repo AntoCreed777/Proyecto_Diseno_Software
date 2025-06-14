@@ -6,7 +6,7 @@ Este repositorio contiene el código fuente y las dependencias necesarias para e
 - [Antonio Jesus Benavides Puentes](https://github.com/AntoCreed777) **(2023455954)**
 - [Ariel Eduardo Cisternas Bustos](https://github.com/Arcisternas) **(2023456152)**
 - [Luis Ignacio Martinez Neira](https://github.com/Nachopex) **(2023427985)**
-- [Esteban Andres Navarrete Mella](https://github.com/Bandido209) **()**
+- [Esteban Andres Navarrete Mella](https://github.com/Bandido209) **(2023455547)**
 - [Joaquin Hernan Sandoval Reyes](https://github.com/joaqsandoval04) **(2023434493)**
 
 
