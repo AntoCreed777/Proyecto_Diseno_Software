@@ -34,8 +34,9 @@ from phonenumber_field.modelfields import PhoneNumberField
 #   - FK: id_conductor -> conductor(id)
 #   - FK: id_despachador -> despachador(id)
 #
-# notificacion(@id, mensaje, fecha_envio, id_cliente)
+# notificacion(@id, mensaje, fecha_envio, id_cliente, id_paquete)
 #   - FK: id_cliente -> cliente(id)
+#   - FK: id_paquete -> paquete(id)
 #
 ### Fin Modelo MR
 
@@ -64,9 +65,9 @@ class Cliente(models.Model):
     direccion_hogar = models.CharField(max_length=255, blank=True, null=True)
 
 class EstadoConductor(models.TextChoices):
-    EN_RUTA = 'en_ruta', 'En Ruta'
+    EN_RUTA = 'en_ruta', 'En ruta'
     DISPONIBLE = 'disponible', 'Disponible'
-    NO_DISPONIBLE = 'no disponible', 'No Disponible'
+    NO_DISPONIBLE = 'no disponible', 'No disponible'
 
 class Conductor(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
@@ -110,24 +111,24 @@ class ConductorPoseeRuta(models.Model):
     ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE)
 
 class EstadoPaquete(models.TextChoices):
-    EN_BODEGA = 'en_bodega', 'En Bodega'
-    EN_RUTA = 'en_ruta', 'En Ruta'
+    EN_BODEGA = 'en_bodega', 'En bodega'
+    EN_RUTA = 'en_ruta', 'En ruta'
     ENTREGADO = 'entregado', 'Entregado'
 
 class Paquete(models.Model):
     id = models.AutoField(primary_key=True)
 
     # Dimensiones
-    largo = models.FloatField(validators=[MinValueValidator(0.01)])
-    ancho = models.FloatField(validators=[MinValueValidator(0.01)])
-    alto = models.FloatField(validators=[MinValueValidator(0.01)])
+    largo = models.FloatField(validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")])
+    ancho = models.FloatField(validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")])
+    alto = models.FloatField(validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")])
 
-    peso = models.FloatField(validators=[MinValueValidator(0.01)])
+    peso = models.FloatField(validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")])
     fecha_registro = models.DateTimeField(auto_now_add=True)
     fecha_entrega = models.DateTimeField(null=True, blank=True)
 
     estado = models.CharField(
-        max_length=100,
+        max_length=10,
         choices=EstadoPaquete.choices,
         default=EstadoPaquete.EN_BODEGA
     )
@@ -153,7 +154,7 @@ class Paquete(models.Model):
     despachador = models.ForeignKey('Despachador', on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
 
 class Notificacion(models.Model):
-    id = models.AutoField(primary_key=True)
     mensaje = models.TextField()
     fecha_envio = models.DateTimeField(auto_now_add=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='notificaciones')
+    paquete = models.ForeignKey(Paquete, on_delete=models.SET_NULL, null=True, blank=True, related_name='notificaciones')
