@@ -1,17 +1,15 @@
 from django.shortcuts import render
-from api.models import Cliente, Paquete
+from api.models import Cliente, Paquete, Notificacion
 
 # Create your views here.
 def inicio(request):
-
-    return render(request,'Cliente/inicio.html')
+    notificaciones = Notificacion.objects.all()
+    paquetes = Paquete.objects.all()
+    return render(request,'Cliente/inicio.html', context = {'notificaciones': notificaciones, 'paquetes':paquetes})
 
 def mis_pedidos(request):
-
-    clientes = Cliente.objects.all()
     paquetes = Paquete.objects.all()
 
-    print(clientes)
     return render(request, 'Cliente/mis_pedidos.html', context = {'paquetes':paquetes})
 
 def ayuda(request):

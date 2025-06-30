@@ -13,4 +13,28 @@
             <li>Estado del pedido</li>
             <li>Detall del pedido</li>
         </ul>
+
+    <table class = "notificaciones">
+        <thead>
+        <tr>
+            <th>Hora</th>
+            <th>paquete</th>
+            <th>Estado antiguo</th>
+            <th>Estado actual</th>
+            <th>Detalle</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for notificacion in notificaciones %}
+       <tr>
+            <td>{{ notificacion.fecha_envio }}</td>
+           <td>{{ notificacion.paquete }}</td>
+           <td>{{ notificacion.paquete.estado }}</td>
+           <td>{{ notificacion.paquete.estado }}</td>
+           <td>{{ notificacion.mensaje }}</td>
+       </tr>
+        {% endfor %}
+        </tbody>
+    </table>
     {% endblock %}
