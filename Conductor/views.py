@@ -1,6 +1,6 @@
 
 from django.shortcuts import render, redirect
-from api.models import ConductorPoseeRuta, Paquete, Cliente, Conductor, Ruta
+from api.models import Paquete, Cliente, Conductor, Ruta
 from datetime import datetime 
 from django.db.models import Sum
 from accounts.views import notificar_cambio_estado_paquete
@@ -25,7 +25,7 @@ def inicio(request):
     if estado:
         paquetes = paquetes.filter(estado=estado)
 
-    rutas_asignadas = ConductorPoseeRuta.objects.filter(conductor=conductor).count()#DEPENDE DE ESTAR LOGEADO
+    rutas_asignadas = Ruta.objects.filter(paquete__conductor=conductor).count()#DEPENDE DE ESTAR LOGEADO
     paquetes_pendientes = paquetes.filter(estado='en_bodega').count()
     paquetes_en_curso = paquetes.filter(estado='en_ruta').count()
     paquetes_entregados = paquetes.filter(estado='entregado').count()
@@ -108,7 +108,7 @@ def rendimiento(request):
     else:
         min_promedios = 0
 
-    distancia_total = Ruta.objects.filter(conductorposeeruta__conductor=conductor).aggregate(total=Sum('distancia_km'))['total'] or 0
+    distancia_total = Ruta.objects.filter(paquete__conductor=conductor).aggregate(total=Sum('distancia_km'))['total'] or 0
     dias_entregas = {}
     for paquete in paquetes.filter(estado='entregado'):
         fecha = paquete.fecha_entrega.date()

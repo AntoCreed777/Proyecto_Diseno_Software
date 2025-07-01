@@ -21,11 +21,8 @@ from phonenumber_field.modelfields import PhoneNumberField
 # despachador(id_usuario)
 #   - FK: id_usuario -> usuario(id)
 #
-# ruta(@id, ruta_kml, duracion_estimada_minutos, distancia_km, origen, destino, fecha_en_que_se_ejecuto)
-#
-# conductorPOSEEruta(id_conductor, id_ruta)
-#   - FK: id_conductor -> conductor(id)
-#   - FK: id_ruta -> ruta(id)
+# ruta(@id, ruta_kml, duracion_estimada_minutos, distancia_km, fecha_en_que_se_ejecuto, id_paquete)
+#   - FK: id_paquete -> paquete(id)
 #
 # vehiculo(@matricula, marca, año_de_fabricacion)
 #
@@ -96,20 +93,6 @@ class Vehiculo(models.Model):
     marca = models.CharField(max_length=100)
     año_de_fabricacion = models.PositiveIntegerField()
 
-class Ruta(models.Model):
-    id = models.AutoField(primary_key=True)
-    ruta_kml = models.TextField()
-    duracion_estimada_minutos = models.PositiveIntegerField()
-    distancia_km = models.FloatField()
-    origen = models.CharField(max_length=255)
-    destino = models.CharField(max_length=255)
-    fecha_en_que_se_ejecuto = models.DateTimeField(null=True, blank=True)
-
-# Relación muchos a muchos entre Conductor y Ruta
-class ConductorPoseeRuta(models.Model):
-    conductor = models.ForeignKey(Conductor, on_delete=models.CASCADE)
-    ruta = models.ForeignKey(Ruta, on_delete=models.CASCADE)
-
 class EstadoPaquete(models.TextChoices):
     EN_BODEGA = 'en_bodega', 'En bodega'
     EN_RUTA = 'en_ruta', 'En ruta'
@@ -158,3 +141,11 @@ class Notificacion(models.Model):
     fecha_envio = models.DateTimeField(auto_now_add=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='notificaciones')
     paquete = models.ForeignKey(Paquete, on_delete=models.SET_NULL, null=True, blank=True, related_name='notificaciones')
+
+class Ruta(models.Model):
+    id = models.AutoField(primary_key=True)
+    ruta_kml = models.TextField()
+    duracion_estimada_minutos = models.PositiveIntegerField()
+    distancia_km = models.FloatField()
+    fecha_en_que_se_ejecuto = models.DateTimeField(null=True, blank=True)
+    paquete = models.OneToOneField('Paquete', on_delete=models.CASCADE, related_name='ruta')

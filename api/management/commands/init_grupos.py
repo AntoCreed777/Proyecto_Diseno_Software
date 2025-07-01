@@ -3,7 +3,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from api.models import (
     Usuario, Cliente, Conductor, Despachador, Admin, Vehiculo,
-    Ruta, ConductorPoseeRuta, Paquete, Notificacion,
+    Ruta, Paquete, Notificacion,
     TiposRoles
 )
 
@@ -40,7 +40,6 @@ class Command(BaseCommand):
         permisos_admin = obtener_permisos(Admin)
         permisos_vehiculo = obtener_permisos(Vehiculo)
         permisos_ruta = obtener_permisos(Ruta)
-        permisos_conductorposeeruta = obtener_permisos(ConductorPoseeRuta)
         permisos_paquete = obtener_permisos(Paquete)
         permisos_notificacion = obtener_permisos(Notificacion)
 
