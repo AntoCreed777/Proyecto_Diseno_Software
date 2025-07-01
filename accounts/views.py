@@ -12,7 +12,6 @@ from .forms import RegistroClienteForm, CustomLoginForm
 from api.models import TiposRoles
 from django.conf import settings
 from api.serializers import NotificacionSerializer
-
 #Activacion del correo
 def activate(request, uidb64, token):
     User = get_user_model()
@@ -69,7 +68,7 @@ def login_view(request):
                     return redirect('/home/')
      else:
           form = CustomLoginForm()
-
+          
      return render(request, 'login.html', {'form': form})
 
 def registration(request):

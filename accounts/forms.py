@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from api.models import Usuario, TiposRoles
 from api.exceptions import GroupNotConfiguredError
-
+from captcha.fields import CaptchaField
 class RegistroClienteForm(UserCreationForm):
     email = forms.EmailField(required=True, label="Correo electrónico")
     telefono = forms.CharField(required=False, label="Teléfono")
@@ -56,6 +56,7 @@ class RegistroClienteForm(UserCreationForm):
         return usuario
 
 class CustomLoginForm(AuthenticationForm):
+    captcha = CaptchaField()
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         for field_name, placeholder in {
@@ -63,7 +64,6 @@ class CustomLoginForm(AuthenticationForm):
             'password': 'Contraseña',
         }.items():
             self.fields[field_name].widget.attrs.update({'class': 'form-control', 'placeholder': placeholder})
-    
     def clean(self):
         cleaned_data = super().clean()
         username = cleaned_data.get('username')
