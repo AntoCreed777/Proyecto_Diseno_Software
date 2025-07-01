@@ -64,12 +64,12 @@ def registrar_paquete(request):
             largo, ancho, alto = [float(x.strip()) for x in dimensiones.lower().replace(' ', '').split('x')]
         except Exception:
             messages.error(request, "Formato de dimensiones inválido. Use 'largo x ancho x alto'.")
-            return render(request, 'despachador/paquetes.html', {
-                'clientes': Cliente.objects.select_related('usuario').all(),
-                'paquetes': Paquete.objects.all().order_by('-id'),
+            clientes = Cliente.objects.select_related('usuario').all()
+            return render(request, 'despachador/registrar_paquete.html', {
+                'clientes': clientes,
                 'errors_paquete': {'dimensiones': ['Formato inválido. Use "largo x ancho x alto".']},
-                'show_paquete_modal': True,
             })
+        
         data = {
             'largo': largo,
             'ancho': ancho,
@@ -88,47 +88,42 @@ def registrar_paquete(request):
             'despachador': Despachador.objects.get(usuario=request.user).id,
             'estado': 'en_bodega',
         }
+        
         serializer = PaqueteSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+            messages.success(request, 'Paquete registrado exitosamente.')
             return redirect('paquetes_despachador')
         else:
-            return render(request, 'despachador/paquetes.html', {
-                'clientes': Cliente.objects.select_related('usuario').all(),
-                'paquetes': Paquete.objects.all().order_by('-id'),
+            clientes = Cliente.objects.select_related('usuario').all()
+            return render(request, 'despachador/registrar_paquete.html', {
+                'clientes': clientes,
                 'errors_paquete': serializer.errors,
-                'show_paquete_modal': True,
             })
-    return redirect('paquetes_despachador')
+    else:
+        # Método GET - mostrar formulario vacío
+        clientes = Cliente.objects.select_related('usuario').all()
+        return render(request, 'despachador/registrar_paquete.html', {
+            'clientes': clientes,
+        })
 
 def registrar_cliente(request):
     if request.method == 'POST':
-        usuario_data = {
-            'username': request.POST.get('username'),
-            'first_name': request.POST.get('nombre'),
-            'last_name': request.POST.get('apellido'),
-            'email': request.POST.get('correo'),
-            'password': request.POST.get('contraseña'),
-            'telefono': request.POST.get('telefono'),
-        }
-        cliente_data = {
-            'usuario': usuario_data,
-            'direccion_hogar': request.POST.get('direccion')
-        }
-        serializer = ClienteSerializer(data=cliente_data,
-                                       context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
+        from accounts.forms import RegistroClienteForm
+        from accounts.views import activarEmail
+        
+        form = RegistroClienteForm(request.POST)
+        if form.is_valid():
+            usuario = form.save(commit=True)
+            activarEmail(request, usuario)
+            messages.success(request, 'Cliente registrado exitosamente. Se ha enviado un correo de verificación.')
+            return redirect('paquetes_despachador')
         else:
-            for field, errors in serializer.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error}")
-            return render(request, 'despachador/paquetes.html', {
-                'clientes': Cliente.objects.select_related('usuario').all(),
-                'paquetes': Paquete.objects.all().order_by('-id'),
-                'show_cliente_modal': True,
-            })
-    return redirect('paquetes_despachador')
+            return render(request, 'despachador/registrar_cliente.html', {'form': form})
+    else:
+        from accounts.forms import RegistroClienteForm
+        form = RegistroClienteForm()
+        return render(request, 'despachador/registrar_cliente.html', {'form': form})
 
 def asignar_conductor(request):
     if request.method == 'POST':

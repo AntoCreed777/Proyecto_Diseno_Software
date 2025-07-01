@@ -1,19 +1,35 @@
 <head>
     <style>
-        body {
+        html, body {
             margin: 0;
+            padding: 0;
+            height: 100%;
             font-family: sans-serif;
-            display: flex; 
-            background-color: #f4f4f4;
+            overflow-x: hidden;
         }
+        
+        body {
+            background-color: #f4f4f4;
+            background-repeat: repeat-y;
+            background-size: 100% 100%;
+            min-height: 100vh;
+        }
+        
         h1 {
             margin-top: 0; 
         }
+        
         aside {
-            background-color:#b4b4b4; 
+            background-color: #b4b4b4;
             color: white;
-            width: 120px;
+            width: 160px;
             padding: 20px;
+            position: fixed; 
+            left: 0;
+            top: 0;
+            height: 100vh;
+            box-sizing: border-box;
+            z-index: 100;
         }
         aside nav a {
             display: block;
@@ -22,13 +38,16 @@
             text-decoration: none;
         }
         aside nav a.active {
-            background-color:#868686; 
+            background-color: rgba(134, 134, 134, 0.8); 
             font-weight: bold;
         }
         main {
-            flex: 1;
+            margin-left: 160px;
             padding: 10px;
             background-color: white;
+            min-height: calc(100vh - 20px); /* Altura completa menos el padding */
+            box-sizing: border-box;
+            position: relative;
         }
         header {
             display: flex;
@@ -41,7 +60,7 @@
         }
         th, td {
             border: 1px solid #ccc;
-            padding: px;
+            padding: 8px; 
             text-align: left;
         }
         th {

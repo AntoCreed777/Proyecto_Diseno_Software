@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'api',
     'home',
     'Conductor',
-    'Despachador',
+    'despachador',
     'Cliente.apps.ClienteConfig',
     'captcha',
 ]

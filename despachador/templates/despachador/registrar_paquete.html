@@ -1,0 +1,104 @@
+{% extends "despachador/template_base.html" %}
+
+{% block title %}
+Registrar Paquete
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div class="card" style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 24px rgba(0,0,0,0.12);">
+        <h2 style="text-align: center; margin-bottom: 30px;">Registrar Nuevo Paquete</h2>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="error-box" style="margin-bottom: 20px;">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if errors_paquete %}
+            {% for field, errors in errors_paquete.items %}
+                {% for error in errors %}
+                    <div class="error-box" style="margin-bottom: 20px;">
+                        <strong>Error en {{ field }}:</strong><br>
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        {% endif %}
+
+        <form method="post" action="{% url 'registrar_paquete_despachador' %}">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Cliente:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <select name="cliente_id" required style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+                        <option value="">Seleccione un cliente</option>
+                        {% for cliente in clientes %}
+                            <option value="{{ cliente.id }}">{{ cliente.usuario.first_name }} {{ cliente.usuario.last_name }} ({{ cliente.usuario.username }})</option>
+                        {% endfor %}
+                    </select>
+                    <a href="{% url 'registrar_cliente_despachador' %}" 
+                       style="padding: 10px 15px; background:#48a1ff; color: white; text-decoration: none; border-radius: 5px; white-space: nowrap;">
+                        Nuevo Cliente
+                    </a>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Nombre del destinatario:</label>
+                <input type="text" name="nombre_destinatario" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">RUT del destinatario:</label>
+                <input type="text" name="rut_destinatario" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
+                       placeholder="12.345.678-9">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Teléfono del destinatario:</label>
+                <input type="text" name="telefono_destinatario" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
+                       placeholder="+56 9 1234 5678">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Dirección de envío:</label>
+                <input type="text" name="direccion_envio_texto" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
+                       placeholder="Calle, número, comuna, ciudad">
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Dimensiones (largo x ancho x alto):</label>
+                <input type="text" name="dimensiones" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
+                       placeholder="Ejemplo: 10x20x30">
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 500;">Peso (kg):</label>
+                <input type="number" step="0.1" name="peso" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px;"
+                       placeholder="0.0">
+            </div>
+
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button type="submit" 
+                        style="background: #48a1ff; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                    Registrar Paquete
+                </button>
+                <a href="{% url 'paquetes_despachador' %}" 
+                   style="background: #6c757d; color: white; text-decoration: none; padding: 12px 30px; border-radius: 5px; font-size: 16px;">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
