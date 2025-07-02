@@ -1,24 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maps</title>
+    <title>Mapa de Rutas - {{ inicio_direccion }} a {{ destino_direccion }}</title>
+    
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator/dist/leaflet.polylineDecorator.min.js"></script>
+    
+    <!-- CSS personalizado -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/map.css' %}">
 </head>
 
 <body>
-    <div id="map" style="height: 500px;"></div>
+    <div class="ruta-info-container">
+        <div class="header-mapa">
+            <h4 class="titulo-mapa">📍 Ruta de Entrega</h4>
+            <button onclick="regresarPaginaAnterior()" class="btn-volver">
+                <span>←</span>
+                <span>Volver</span>
+            </button>
+        </div>
+        <div id="ruta-info">
+            <p><strong>Origen:</strong> <span id="origen-texto">{{ inicio_direccion }}</span></p>
+            <p><strong>Destino:</strong> <span id="destino-texto">{{ destino_direccion }}</span></p>
+            <div id="ruta-detalles" class="ruta-detalles">
+                <p><strong>📏 Distancia total (ida y regreso):</strong> <span id="distancia"></span> km</p>
+                <p><strong>⏱️ Duración total estimada:</strong> <span id="duracion"></span> minutos</p>
+                <p class="leyenda-rutas">
+                    <span class="color-ida">●</span> Ruta de ida &nbsp;&nbsp;
+                    <span class="color-regreso">●</span> Ruta de regreso
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="map" class="mapa-container"></div>
 
-    <!-- Archivos de JavaScript externos -->
-    <script src="../static/js/polyline.js"></script>
-    <script src="../static/js/map.js"></script>
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator/dist/leaflet.polylineDecorator.min.js"></script>
+    
+    <!-- JavaScript personalizado -->
+    <script src="{% static 'js/mapRutas.js' %}"></script>
     
     <script>
-        const nodos = JSON.parse('{{ nodos|escapejs }}'); // Cargar nodos desde el contexto
-        calcularRutaEntreNodos(nodos);
+        // Inicializar el mapa con los datos de Django
+        document.addEventListener('DOMContentLoaded', function() {
+            const rutasData = JSON.parse('{{ rutas_data|escapejs }}');
+            const distanciaTotal = {{ distancia_total }};
+            const duracionTotal = {{ duracion_total }};
+            const paginaAnterior = '{{ pagina_anterior|escapejs }}';
+            
+            inicializarMapaRutas(rutasData, distanciaTotal, duracionTotal, paginaAnterior);
+        });
     </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .utilities import obtener_coordenadas
+from .utilities import obtener_coordenadas, calcular_ruta_entre_nodos, calcular_datos_ruta, decodificar_polyline
 from geopy.exc import GeocoderTimedOut
 import json
 
@@ -12,24 +12,175 @@ def map(request):
 
     if not inicio or not destino:
         messages.error(request, "Faltan parámetros en la solicitud.")
-        return redirect(request.META.get('HTTP_REFERER', '/'))  # Redirige a la pagina de origen
+        return redirect(request.META.get('HTTP_REFERER', '/'))
 
     try:
+        # Obtener coordenadas de inicio y destino
         inicio_coordenada = obtener_coordenadas(inicio)
         destino_coordenada = obtener_coordenadas(destino)
 
         if not inicio_coordenada or not destino_coordenada:
             messages.error(request, "No se pudo geolocalizar las direcciones.")
-            return redirect(request.META.get('HTTP_REFERER', '/'))  # Redirige a la pagina de origen
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+        
+        # Preparar nodos para la ruta de ida
+        nodos_ida = [
+            {'lat': inicio_coordenada[0], 'lon': inicio_coordenada[1]},
+            {'lat': destino_coordenada[0], 'lon': destino_coordenada[1]}
+        ]
+        
+        # Preparar nodos para la ruta de regreso
+        nodos_regreso = [
+            {'lat': destino_coordenada[0], 'lon': destino_coordenada[1]},
+            {'lat': inicio_coordenada[0], 'lon': inicio_coordenada[1]}
+        ]
+        
+        # Calcular ruta de ida y de regreso
+        ruta_ida = calcular_ruta_entre_nodos(nodos_ida, roundtrip=False)
+        ruta_regreso = calcular_ruta_entre_nodos(nodos_regreso, roundtrip=False)
+        
+        # Preparar datos para el template
+        def procesar_ruta(ruta_detallada, nombre_ruta, color_ruta):
+            """Función auxiliar para procesar una ruta y extraer sus coordenadas"""
+            if not ruta_detallada:
+                return None
+                
+            coordenadas_ruta = []
+            
+            # Si hay geometría completa, decodificarla
+            if ruta_detallada.get('geometria_completa'):
+                try:
+                    # Decodificar la geometría polyline de OSRM usando la librería oficial
+                    coordenadas_decodificadas = decodificar_polyline(ruta_detallada['geometria_completa'])
+                    
+                    print(f"Polyline {nombre_ruta} decodificado, primeras 3 coordenadas: {coordenadas_decodificadas[:3]}")
+                    
+                    # Convertir a formato [lat, lng] para Leaflet
+                    coordenadas_ruta = [[lat, lng] for lat, lng in coordenadas_decodificadas]
+                    
+                    # Verificar si las coordenadas están en el rango correcto para Chile
+                    if coordenadas_ruta and len(coordenadas_ruta) > 0:
+                        primera_lat, primera_lng = coordenadas_ruta[0]
+                        print(f"Primera coordenada {nombre_ruta}: [{primera_lat}, {primera_lng}]")
+                        
+                        # Verificar rango válido para Chile: Lat -56 a -17, Lng -109 a -66
+                        if -56 <= primera_lat <= -17 and -109 <= primera_lng <= -66:
+                            print(f"✅ Coordenadas {nombre_ruta} en rango válido para Chile")
+                        else:
+                            print(f"⚠️ Coordenadas {nombre_ruta} fuera del rango de Chile")
+                            print(f"Lat: {primera_lat}, Lng: {primera_lng}")
+                            print(f"Usando línea recta como fallback para {nombre_ruta}")
+                            # En caso de coordenadas fuera de rango, usar línea recta
+                            if "Ida" in nombre_ruta:
+                                coordenadas_ruta = [[inicio_coordenada[0], inicio_coordenada[1]], 
+                                                  [destino_coordenada[0], destino_coordenada[1]]]
+                            else:  # regreso
+                                coordenadas_ruta = [[destino_coordenada[0], destino_coordenada[1]], 
+                                                  [inicio_coordenada[0], inicio_coordenada[1]]]
+                    
+                except Exception as e:
+                    print(f"Error decodificando polyline {nombre_ruta}: {e}")
+                    # En caso de error, usar coordenadas básicas
+                    if "Ida" in nombre_ruta:
+                        coordenadas_ruta = [[inicio_coordenada[0], inicio_coordenada[1]], 
+                                          [destino_coordenada[0], destino_coordenada[1]]]
+                    else:  # regreso
+                        coordenadas_ruta = [[destino_coordenada[0], destino_coordenada[1]], 
+                                          [inicio_coordenada[0], inicio_coordenada[1]]]
+            else:
+                # Si no hay geometría, usar coordenadas básicas
+                if "Ida" in nombre_ruta:
+                    coordenadas_ruta = [[inicio_coordenada[0], inicio_coordenada[1]], 
+                                      [destino_coordenada[0], destino_coordenada[1]]]
+                else:  # regreso
+                    coordenadas_ruta = [[destino_coordenada[0], destino_coordenada[1]], 
+                                      [inicio_coordenada[0], inicio_coordenada[1]]]
+            
+            # Procesar pasos para obtener coordenadas detalladas
+            pasos_coordenadas = []
+            for paso in ruta_detallada.get('pasos', []):
+                paso_coords = []
+                if paso.get('geometria'):
+                    try:
+                        # Decodificar geometría del paso individual usando la librería oficial
+                        coords_paso = decodificar_polyline(paso['geometria'])
+                        paso_coords = [[lat, lng] for lat, lng in coords_paso]
+                        
+                    except Exception as e:
+                        print(f"Error decodificando polyline del paso {nombre_ruta}: {e}")
+                        # Si falla, usar coordenadas básicas
+                        if "Ida" in nombre_ruta:
+                            paso_coords = [[inicio_coordenada[0], inicio_coordenada[1]], 
+                                         [destino_coordenada[0], destino_coordenada[1]]]
+                        else:  # regreso
+                            paso_coords = [[destino_coordenada[0], destino_coordenada[1]], 
+                                         [inicio_coordenada[0], inicio_coordenada[1]]]
+                
+                pasos_coordenadas.append({
+                    'nombre': paso['nombre'],
+                    'instruccion': paso.get('instruccion', ''),
+                    'distancia': paso.get('distancia', 0),
+                    'coordenadas': paso_coords
+                })
+            
+            return {
+                'coordenadas': coordenadas_ruta,
+                'distancia_km': ruta_detallada.get('distancia_km', 0),
+                'duracion_minutos': round(ruta_detallada.get('duracion_minutos', 0), 1),
+                'color': color_ruta,
+                'nombre': nombre_ruta,
+                'pasos': pasos_coordenadas
+            }
+        
+        # Procesar ruta de ida
+        ruta_ida_procesada = procesar_ruta(ruta_ida, "Ruta de Ida", '#3388ff')
+        # Procesar ruta de regreso
+        ruta_regreso_procesada = procesar_ruta(ruta_regreso, "Ruta de Regreso", '#ff8833')
+        
+        # Preparar datos combinados para el template
+        rutas_data = []
+        distancia_total = 0
+        duracion_total = 0
+        
+        if ruta_ida_procesada:
+            rutas_data.append(ruta_ida_procesada)
+            distancia_total += ruta_ida_procesada['distancia_km']
+            duracion_total += ruta_ida_procesada['duracion_minutos']
+            
+        if ruta_regreso_procesada:
+            rutas_data.append(ruta_regreso_procesada)
+            distancia_total += ruta_regreso_procesada['distancia_km']
+            duracion_total += ruta_regreso_procesada['duracion_minutos']
+        
+        # Si no hay rutas válidas, usar datos básicos
+        if not rutas_data:
+            datos_basicos = calcular_datos_ruta(inicio_coordenada, destino_coordenada)
+            rutas_data = [{
+                'coordenadas': [[inicio_coordenada[0], inicio_coordenada[1]], 
+                              [destino_coordenada[0], destino_coordenada[1]]],
+                'distancia_km': datos_basicos.get('distancia_km', 0),
+                'duracion_minutos': datos_basicos.get('duracion_estimada_minutos', 0),
+                'color': '#ff3388',
+                'nombre': 'Ruta Básica',
+                'pasos': []
+            }]
+            distancia_total = datos_basicos.get('distancia_km', 0)
+            duracion_total = datos_basicos.get('duracion_estimada_minutos', 0)
         
         contexto = {
-            'nodos': json.dumps([
-                    {'lat': inicio_coordenada[0], 'lon': inicio_coordenada[1]},
-                    {'lat': destino_coordenada[0], 'lon': destino_coordenada[1]},
-            ])
+            'rutas_data': json.dumps(rutas_data),  # Lista de rutas (ida y regreso)
+            'inicio_direccion': inicio,
+            'destino_direccion': destino,
+            'distancia_total': distancia_total,
+            'duracion_total': duracion_total,
+            'pagina_anterior': request.META.get('HTTP_REFERER', '/'),  # URL de la página anterior
         }
+        
         return render(request, 'map.html', contexto)
 
     except GeocoderTimedOut:
         messages.error(request, "Tiempo de espera agotado al intentar geolocalizar la dirección.")
-        return redirect(request.META.get('HTTP_REFERER', '/'))  # Redirige a la pagina de origen
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+    except Exception as e:
+        messages.error(request, f"Error al calcular la ruta: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', '/'))

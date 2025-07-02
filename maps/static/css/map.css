@@ -1,0 +1,95 @@
+/* Estilos para el mapa de rutas */
+
+.btn-volver {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-volver:hover {
+    background-color: #5a6268;
+}
+
+.btn-volver:active {
+    background-color: #495057;
+}
+
+.header-mapa {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.titulo-mapa {
+    margin: 0;
+    color: #495057;
+}
+
+.ruta-info-container {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.ruta-detalles {
+    display: none;
+}
+
+.leyenda-rutas {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 8px;
+}
+
+.color-ida {
+    color: #3388ff;
+}
+
+.color-regreso {
+    color: #ff8833;
+}
+
+.mapa-container {
+    height: 500px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .header-mapa {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .btn-volver {
+        align-self: flex-end;
+    }
+    
+    .mapa-container {
+        height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+    .mapa-container {
+        height: 350px;
+    }
+    
+    .ruta-info-container {
+        padding: 8px;
+    }
+    
+    .titulo-mapa {
+        font-size: 1.1rem;
+    }
+}

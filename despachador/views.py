@@ -8,6 +8,8 @@ from rest_framework.exceptions import ValidationError
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from accounts.views import notificar_cambio_estado_paquete
+from maps.utilities import obtener_coordenadas
+from geopy.exc import GeocoderTimedOut
 
 def inicio(request):
 
@@ -70,23 +72,34 @@ def registrar_paquete(request):
                 'errors_paquete': {'dimensiones': ['Formato inválido. Use "largo x ancho x alto".']},
             })
         
+        # Obtener coordenadas de la dirección de envío
+        direccion_envio_texto = request.POST.get('direccion_envio_texto')
+        direccion_envio_lat = 0.0
+        direccion_envio_lng = 0.0
+        
+        try:
+            coordenadas_envio = obtener_coordenadas(direccion_envio_texto)
+            if coordenadas_envio:
+                direccion_envio_lat = coordenadas_envio[0]
+                direccion_envio_lng = coordenadas_envio[1]
+            else:
+                messages.warning(request, "No se pudieron obtener las coordenadas de la dirección de envío. Se usarán coordenadas por defecto.")
+        except:
+            messages.warning(request, "Error al obtener coordenadas de la dirección. Se usarán coordenadas por defecto.")
+        
         data = {
             'largo': largo,
             'ancho': ancho,
             'alto': alto,
             'peso': request.POST.get('peso'),
-            'ubicacion_actual_lat': 0.0,
-            'ubicacion_actual_lng': 0.0,
-            'ubicacion_actual_texto': 'En Bodega',
-            'direccion_envio_lat': 0.0,
-            'direccion_envio_lng': 0.0,
-            'direccion_envio_texto': request.POST.get('direccion_envio_texto'),
+            'direccion_envio_lat': direccion_envio_lat,
+            'direccion_envio_lng': direccion_envio_lng,
+            'direccion_envio_texto': direccion_envio_texto,
             'nombre_destinatario': request.POST.get('nombre_destinatario'),
             'rut_destinatario': request.POST.get('rut_destinatario'),
             'telefono_destinatario': request.POST.get('telefono_destinatario'),
             'cliente': request.POST.get('cliente_id'),
-            'despachador': Despachador.objects.get(usuario=request.user).id,
-            'estado': 'en_bodega',
+            'despachador': Despachador.objects.get(usuario=request.user).pk,
         }
         
         serializer = PaqueteSerializer(data=data)
