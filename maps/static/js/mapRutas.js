@@ -1,6 +1,10 @@
 /**
  * Funcionalidad de mapas para rutas de entrega
  * Maneja la visualización de rutas de ida y regreso usando Leaflet y OSRM
+ * 
+ * Dependencias requeridas:
+ * - Leaflet.js (para el mapa)
+ * - polyline.js (para decodificar polylines de OSRM)
  */
 
 // Variables globales
@@ -10,7 +14,36 @@ var distanciaTotal;
 var duracionTotal;
 
 /**
- * Inicializa el mapa de Leaflet
+ * Verifica que las dependencias requeridas estén disponibles
+ * Realiza una verificación básica de Leaflet y polyline.js
+ * @returns {boolean} True si todas las dependencias están disponibles
+ */
+function verificarDependencias() {
+    if (typeof L === 'undefined') {
+        console.error('Error: Leaflet no está disponible');
+        return false;
+    }
+    
+    if (typeof polyline === 'undefined') {
+        console.warn('Advertencia: polyline.js no disponible, se usarán coordenadas directas');
+        return false;
+    }
+    
+    // Prueba rápida de decodificación
+    try {
+        const polylinePrueba = 'u{~vFvyys@fS]';
+        polyline.decode(polylinePrueba);
+        console.log('Sistema de polylines funcionando correctamente');
+        return true;
+    } catch (error) {
+        console.warn('Error en polyline.js, se usarán coordenadas directas:', error);
+        return false;
+    }
+}
+
+/**
+ * Inicializa el mapa de Leaflet con la configuración predeterminada
+ * Crea el mapa centrado en Concepción, Chile y añade la capa base de OpenStreetMap
  */
 function inicializarMapa() {
     map = L.map('map', {
@@ -25,7 +58,10 @@ function inicializarMapa() {
 }
 
 /**
- * Función para regresar a la página anterior
+ * Función para regresar a la página anterior del usuario
+ * Implementa una estrategia de fallback: primero intenta usar la página anterior
+ * configurada desde Django, luego document.referrer, luego history.back(), 
+ * y finalmente redirige a la página principal como último recurso
  */
 function regresarPaginaAnterior() {
     // Primera opción: usar la página anterior del contexto de Django
@@ -57,40 +93,60 @@ function verificarRangoChile(lat, lng) {
 
 /**
  * Función para mostrar una ruta individual en el mapa
- * @param {Object} data - Datos de la ruta
- * @param {number} index - Índice de la ruta
- * @returns {Object} - Objeto de polilínea de Leaflet
+ * @param {Object} data - Datos de la ruta que debe contener:
+ *   - {string} nombre - Nombre descriptivo de la ruta
+ *   - {string} [polyline] - Polyline codificado de la ruta (opcional)
+ *   - {Array<Array<number>>} [coordenadas] - Array de coordenadas [lat, lng] (opcional)
+ *   - {string} [color] - Color de la línea en formato hex (opcional)
+ *   - {number} [distancia_km] - Distancia de la ruta en kilómetros (opcional)
+ *   - {number} [duracion_minutos] - Duración estimada en minutos (opcional)
+ * @param {number} [index=0] - Índice de la ruta para colores automáticos
+ * @returns {Object|null} - Objeto de polilínea de Leaflet o null si hay error
  */
 function mostrarRuta(data, index = 0) {
-    if (!data || !data.coordenadas || data.coordenadas.length === 0) {
-        console.log("No hay datos de ruta para mostrar");
+    if (!data) {
+        console.warn("No hay datos de ruta para mostrar");
         return;
     }
     
-    console.log(`Datos de ${data.nombre} recibidos:`, data);
-    console.log("Número de coordenadas:", data.coordenadas.length);
-    console.log("Primera coordenada:", data.coordenadas[0]);
-    console.log("Última coordenada:", data.coordenadas[data.coordenadas.length - 1]);
+    let coordenadas = [];
     
-    // Verificar si las coordenadas están en rango válido para Chile
-    const [lat1, lng1] = data.coordenadas[0];
-    console.log(`${data.nombre} - Primera coord - Lat: ${lat1}, Lng: ${lng1}`);
-    
-    if (!verificarRangoChile(lat1, lng1)) {
-        console.warn(`⚠️ Coordenadas de ${data.nombre} parecen estar fuera del rango de Chile!`);
-        console.warn("Rango válido: Lat [-56, -17], Lng [-109, -66]");
+    // Intentar decodificar polyline si está disponible y la librería está cargada
+    if (data.polyline && typeof polyline !== 'undefined') {
+        try {
+            coordenadas = polyline.decode(data.polyline);
+            console.log(`Polyline decodificada para ${data.nombre}: ${coordenadas.length} puntos`);
+        } catch (error) {
+            console.warn(`Error decodificando polyline de ${data.nombre}, usando coordenadas directas:`, error);
+            coordenadas = data.coordenadas || [];
+        }
+    } else if (data.coordenadas && Array.isArray(data.coordenadas) && data.coordenadas.length > 0) {
+        coordenadas = data.coordenadas;
+        console.log(`Usando coordenadas directas para ${data.nombre}: ${coordenadas.length} puntos`);
     } else {
-        console.log(`✅ Coordenadas de ${data.nombre} en rango válido para Chile`);
+        console.error(`Sin datos válidos para renderizar ${data.nombre}`);
+        return null;
     }
     
-    // Crear la polilínea principal
-    const ruta = L.polyline(data.coordenadas, {
+    if (coordenadas.length === 0) {
+        console.warn(`No se pudieron obtener coordenadas para ${data.nombre}`);
+        return null;
+    }
+    
+    // Validar rango geográfico para Chile
+    const [lat1, lng1] = coordenadas[0];
+    if (!verificarRangoChile(lat1, lng1)) {
+        console.warn(`Coordenadas de ${data.nombre} fuera del rango de Chile: [${lat1}, ${lng1}]`);
+    }
+    
+    // Crear la polilínea en el mapa
+    const ruta = L.polyline(coordenadas, {
         color: data.color || (index === 0 ? '#3388ff' : '#ff8833'),
-        weight: 5,  // Línea visible
+        weight: 5,
         opacity: 0.8
     }).addTo(map);
     
-    // Agregar popup con información
+    // Configurar popup informativo
     let popupContent = `<b>${data.nombre}</b><br>`;
     if (data.distancia_km) {
         popupContent += `Distancia: ${data.distancia_km} km<br>`;
@@ -98,7 +154,7 @@ function mostrarRuta(data, index = 0) {
     if (data.duracion_minutos) {
         popupContent += `Duración: ${data.duracion_minutos} min<br>`;
     }
-    popupContent += `Puntos: ${data.coordenadas.length}`;
+    popupContent += `Puntos: ${coordenadas.length}`;
     
     ruta.bindPopup(popupContent);
     
@@ -106,12 +162,14 @@ function mostrarRuta(data, index = 0) {
 }
 
 /**
- * Crea marcadores de inicio y destino
- * @param {Array} coordenadasInicio - Coordenadas del punto de inicio
- * @param {Array} coordenadasDestino - Coordenadas del punto de destino
+ * Crea marcadores de inicio y destino en el mapa con iconos personalizados
+ * @param {Array<number>} coordenadasInicio - Coordenadas del punto de inicio [lat, lng]
+ * @param {Array<number>} coordenadasDestino - Coordenadas del punto de destino [lat, lng]
+ * @description Crea un marcador verde para el origen (Universidad de Concepción) 
+ *              y un marcador azul para el destino de entrega
  */
 function crearMarcadores(coordenadasInicio, coordenadasDestino) {
-    // Marcador de inicio (verde)
+    // Marcador de origen (verde) - Universidad de Concepción
     L.marker(coordenadasInicio, {
         icon: L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
@@ -121,9 +179,9 @@ function crearMarcadores(coordenadasInicio, coordenadasDestino) {
             popupAnchor: [1, -34],
             shadowSize: [41, 41]
         })
-    }).addTo(map).bindPopup("🏠 Inicio");
+    }).addTo(map).bindPopup("🏠 Universidad de Concepción");
     
-    // Marcador de destino (azul)
+    // Marcador de destino (azul) - Dirección de entrega
     L.marker(coordenadasDestino, {
         icon: L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
@@ -133,13 +191,17 @@ function crearMarcadores(coordenadasInicio, coordenadasDestino) {
             popupAnchor: [1, -34],
             shadowSize: [41, 41]
         })
-    }).addTo(map).bindPopup("📦 Destino");
+    }).addTo(map).bindPopup("📦 Destino de entrega");
 }
 
 /**
- * Muestra los pasos detallados de una ruta
- * @param {Object} rutaData - Datos de la ruta
- * @param {number} index - Índice de la ruta
+ * Muestra los pasos detallados de una ruta individual como polilíneas
+ * @param {Object} rutaData - Datos de la ruta que contiene:
+ *   - {string} nombre - Nombre de la ruta
+ *   - {Array<Object>} [pasos] - Array de pasos con coordenadas e instrucciones
+ * @param {number} index - Índice de la ruta para generar colores únicos
+ * @description Renderiza cada paso como una polilínea con colores diferenciados
+ *              y popups informativos con instrucciones de navegación
  */
 function mostrarPasosRuta(rutaData, index) {
     if (rutaData.pasos && rutaData.pasos.length > 0) {
@@ -158,8 +220,16 @@ function mostrarPasosRuta(rutaData, index) {
 }
 
 /**
- * Función para mostrar todas las rutas
- * @param {Array} rutasArray - Array con los datos de todas las rutas
+ * Función para mostrar todas las rutas en el mapa
+ * @param {Array<Object>} rutasArray - Array con los datos de todas las rutas, donde cada ruta contiene:
+ *   - {string} nombre - Nombre descriptivo de la ruta
+ *   - {string} [polyline] - Polyline codificado (opcional)
+ *   - {Array<Array<number>>} [coordenadas] - Coordenadas directas (opcional)
+ *   - {string} [color] - Color personalizado (opcional)
+ *   - {number} [distancia_km] - Distancia en kilómetros (opcional)
+ *   - {number} [duracion_minutos] - Duración en minutos (opcional)
+ * @description Procesa y renderiza todas las rutas, coloca marcadores de inicio/destino,
+ *              muestra pasos detallados si están disponibles y ajusta la vista del mapa
  */
 function mostrarRutas(rutasArray) {
     if (!rutasArray || rutasArray.length === 0) {
@@ -176,10 +246,25 @@ function mostrarRutas(rutasArray) {
             todasLasRutas.push(ruta);
             
             // Solo colocar marcadores una vez (usando la primera ruta)
-            if (!marcadoresColocados && rutaData.coordenadas.length > 0) {
-                const destinoCoordenada = rutaData.coordenadas[rutaData.coordenadas.length - 1];
-                crearMarcadores(rutaData.coordenadas[0], destinoCoordenada);
-                marcadoresColocados = true;
+            if (!marcadoresColocados) {
+                let coordenadas = [];
+                
+                // Obtener coordenadas para marcadores
+                if (rutaData.polyline && typeof polyline !== 'undefined') {
+                    try {
+                        coordenadas = polyline.decode(rutaData.polyline);
+                    } catch (error) {
+                        coordenadas = rutaData.coordenadas || [];
+                    }
+                } else {
+                    coordenadas = rutaData.coordenadas || [];
+                }
+                
+                if (coordenadas.length > 0) {
+                    const destinoCoordenada = coordenadas[coordenadas.length - 1];
+                    crearMarcadores(coordenadas[0], destinoCoordenada);
+                    marcadoresColocados = true;
+                }
             }
             
             // Mostrar pasos individuales si están disponibles
@@ -195,7 +280,10 @@ function mostrarRutas(rutasArray) {
 }
 
 /**
- * Actualiza la información mostrada en el header
+ * Actualiza la información mostrada en el header de la página
+ * Muestra la distancia total, duración total y hace visible la sección de detalles
+ * @description Utiliza las variables globales distanciaTotal y duracionTotal
+ *              para actualizar los elementos DOM correspondientes
  */
 function actualizarInformacionHeader() {
     if (distanciaTotal !== undefined && duracionTotal !== undefined) {
@@ -207,17 +295,39 @@ function actualizarInformacionHeader() {
 
 /**
  * Función principal que se ejecuta cuando se carga la página
- * @param {Array} datosRutas - Datos de las rutas desde Django
- * @param {number} distanciaTotal - Distancia total calculada
- * @param {number} duracionTotal - Duración total calculada
- * @param {string} paginaAnterior - URL de la página anterior
+ * @param {Array<Object>} datosRutas - Array de datos de las rutas desde Django, donde cada ruta contiene:
+ *   - {string} nombre - Nombre de la ruta
+ *   - {string} [polyline] - Polyline codificado
+ *   - {Array<Array<number>>} [coordenadas] - Coordenadas directas
+ *   - {Object} [pasos] - Pasos detallados de navegación
+ * @param {number} distTotal - Distancia total calculada en kilómetros
+ * @param {number} durTotal - Duración total calculada en minutos  
+ * @param {string} paginaAnt - URL de la página anterior para navegación
+ * @description Inicializa el sistema completo: verifica dependencias, configura variables globales,
+ *              inicializa el mapa, procesa y muestra las rutas, y actualiza la información del header
  */
 function inicializarMapaRutas(datosRutas, distTotal, durTotal, paginaAnt) {
+    // Verificar dependencias disponibles
+    const dependenciasOK = verificarDependencias();
+    
     // Asignar variables globales
     rutasData = datosRutas;
     distanciaTotal = distTotal;
     duracionTotal = durTotal;
     window.paginaAnterior = paginaAnt;
+    
+    console.log('Inicializando mapa de rutas:', {
+        rutas: rutasData ? rutasData.length : 0,
+        distancia: distTotal + ' km',
+        duracion: durTotal + ' min',
+        dependencias: dependenciasOK ? 'OK' : 'Parciales'
+    });
+    
+    // Verificar que al menos Leaflet esté disponible antes de continuar
+    if (typeof L === 'undefined') {
+        console.error('No se puede inicializar el mapa sin Leaflet');
+        return;
+    }
     
     // Inicializar el mapa
     inicializarMapa();
@@ -226,8 +336,9 @@ function inicializarMapaRutas(datosRutas, distTotal, durTotal, paginaAnt) {
     if (rutasData && rutasData.length > 0) {
         mostrarRutas(rutasData);
         actualizarInformacionHeader();
+        console.log('Mapa inicializado exitosamente con', rutasData.length, 'rutas');
     } else {
-        console.warn("No se encontraron rutas para mostrar");
+        console.warn('No se encontraron rutas para mostrar');
     }
 }
 

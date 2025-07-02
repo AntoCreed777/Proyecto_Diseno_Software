@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
+from maps.constants import UNIVERSIDAD_CONCEPCION, UNIVERSIDAD_CONCEPCION_COORDS_TUPLE
 
 ### Modelo MR
 #
@@ -117,11 +118,11 @@ class Paquete(models.Model):
     )
 
     # Ubicacion actual
-    ubicacion_actual_lat = models.FloatField(default=-36.8302049)
-    ubicacion_actual_lng = models.FloatField(default=-73.0372293)
+    ubicacion_actual_lat = models.FloatField(default=UNIVERSIDAD_CONCEPCION_COORDS_TUPLE[0])
+    ubicacion_actual_lng = models.FloatField(default=UNIVERSIDAD_CONCEPCION_COORDS_TUPLE[1])
     ubicacion_actual_texto =  models.CharField(
         max_length=200,
-        default="Universidad de Concepcion, Concepcion, Bio Bio, Chile"
+        default=UNIVERSIDAD_CONCEPCION["direccion"]
     )
 
     # Direccion envio
@@ -142,10 +143,66 @@ class Notificacion(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='notificaciones')
     paquete = models.ForeignKey(Paquete, on_delete=models.SET_NULL, null=True, blank=True, related_name='notificaciones')
 
+class TipoRuta(models.TextChoices):
+    IDA = 'ida', 'Ruta de Ida'
+    REGRESO = 'regreso', 'Ruta de Regreso'
+    COMPLETA = 'completa', 'Ruta Completa (Ida y Regreso)'
+
 class Ruta(models.Model):
+    """
+    Modelo que almacena rutas de ida y regreso calculadas para paquetes.
+    Optimizado para almacenar tanto coordenadas como polylines comprimidos.
+    """
     id = models.AutoField(primary_key=True)
-    ruta_kml = models.TextField()
-    duracion_estimada_minutos = models.PositiveIntegerField()
-    distancia_km = models.FloatField()
-    fecha_en_que_se_ejecuto = models.DateTimeField(null=True, blank=True)
+    tipo_ruta = models.CharField(max_length=10, choices=TipoRuta.choices, default=TipoRuta.COMPLETA)
+    
+    # Datos de la ruta de ida
+    ruta_ida_coordenadas = models.JSONField(help_text="Coordenadas de la ruta de ida como lista de [lat, lng]")
+    ruta_ida_polyline = models.TextField(help_text="Polyline codificado de la ruta de ida")
+    distancia_ida_km = models.FloatField(help_text="Distancia de la ruta de ida en kilómetros")
+    duracion_ida_minutos = models.PositiveIntegerField(help_text="Duración estimada de la ruta de ida en minutos")
+    
+    # Datos de la ruta de regreso
+    ruta_regreso_coordenadas = models.JSONField(help_text="Coordenadas de la ruta de regreso como lista de [lat, lng]")
+    ruta_regreso_polyline = models.TextField(help_text="Polyline codificado de la ruta de regreso")
+    distancia_regreso_km = models.FloatField(help_text="Distancia de la ruta de regreso en kilómetros")
+    duracion_regreso_minutos = models.PositiveIntegerField(help_text="Duración estimada de la ruta de regreso en minutos")
+    
+    # Totales calculados automáticamente
+    distancia_total_km = models.FloatField(help_text="Distancia total (ida + regreso) en kilómetros")
+    duracion_total_minutos = models.PositiveIntegerField(help_text="Duración total estimada (ida + regreso) en minutos")
+    
+    # Metadatos de la ruta
+    fecha_calculo = models.DateTimeField(auto_now_add=True, help_text="Fecha y hora cuando se calculó la ruta")
+    fecha_en_que_se_ejecuto = models.DateTimeField(null=True, blank=True, help_text="Fecha y hora cuando se ejecutó la ruta")
+    origen_direccion = models.CharField(max_length=500, help_text="Dirección de origen (Universidad)")
+    destino_direccion = models.CharField(max_length=500, help_text="Dirección de destino del paquete")
+    
+    # Coordenadas exactas de origen y destino
+    origen_lat = models.FloatField(help_text="Latitud del punto de origen")
+    origen_lng = models.FloatField(help_text="Longitud del punto de origen")
+    destino_lat = models.FloatField(help_text="Latitud del punto de destino")
+    destino_lng = models.FloatField(help_text="Longitud del punto de destino")
+    
+    # Relación uno a uno con paquete
     paquete = models.OneToOneField('Paquete', on_delete=models.CASCADE, related_name='ruta')
+    
+    # Duración real (registrada por el conductor)
+    duracion_real_minutos = models.PositiveIntegerField(
+        null=True, 
+        blank=True, 
+        help_text="Duración real que tomó al conductor completar la ruta (en minutos)"
+    )
+    
+    class Meta:
+        verbose_name = "Ruta"
+        verbose_name_plural = "Rutas"
+    
+    def __str__(self):
+        return f"Ruta {self.paquete.id}: {self.origen_direccion} → {self.destino_direccion}"
+    
+    def save(self, *args, **kwargs):
+        """Calcula automáticamente los totales antes de guardar"""
+        self.distancia_total_km = self.distancia_ida_km + self.distancia_regreso_km
+        self.duracion_total_minutos = self.duracion_ida_minutos + self.duracion_regreso_minutos
+        super().save(*args, **kwargs)

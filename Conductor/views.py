@@ -4,7 +4,6 @@ from api.models import Paquete, Cliente, Conductor, Ruta
 from datetime import datetime 
 from django.db.models import Sum
 from accounts.views import notificar_cambio_estado_paquete
-from urllib.parse import urlencode
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
 
@@ -138,20 +137,12 @@ def mapa(request):
     id_paquete = request.GET.get('id')
 
     if not id_paquete:
-        return redirect('conductor:lista_paquetes')
+        return redirect('conductor:paquetes')
 
-    # Obtener el paquete, o lanzar 404 si no existe
-    paquete_info = get_object_or_404(Paquete, id=id_paquete)
+    # Verificar que el paquete existe
+    get_object_or_404(Paquete, id=id_paquete)
 
-    inicio = paquete_info.ubicacion_actual_texto
-    destino = paquete_info.direccion_envio_texto
-
-    # Armar los parámetros para la URL
-    params = urlencode({
-        'inicio': inicio,
-        'destino': destino
-    })
-
-    url = reverse('maps:map') + '?' + params
+    # Redirigir a la vista de mapas pasando solo el ID del paquete
+    url = reverse('maps:map_paquete', kwargs={'paquete_id': id_paquete})
 
     return redirect(url)

@@ -184,3 +184,56 @@ def map(request):
     except Exception as e:
         messages.error(request, f"Error al calcular la ruta: {str(e)}")
         return redirect(request.META.get('HTTP_REFERER', '/'))
+
+@login_required(login_url='/accounts/login/')
+def map_paquete(request, paquete_id):
+    """
+    Vista para mostrar la ruta de un paquete específico desde la base de datos
+    """
+    try:
+        from api.models import Paquete, Ruta
+        
+        # Obtener el paquete
+        try:
+            paquete = Paquete.objects.get(id=paquete_id)
+        except Paquete.DoesNotExist:
+            messages.error(request, f"Paquete con ID {paquete_id} no encontrado.")
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+        
+        # Verificar si existe una ruta calculada
+        try:
+            ruta = paquete.ruta
+        except Ruta.DoesNotExist:
+            messages.warning(request, "Ruta no calculada para este paquete. Calculando...")
+            # Intentar calcular la ruta
+            from .utilities import calcular_y_guardar_ruta_paquete
+            ruta, error = calcular_y_guardar_ruta_paquete(paquete)
+            
+            if error:
+                messages.error(request, f"No se pudo calcular la ruta: {error}")
+                return redirect(request.META.get('HTTP_REFERER', '/'))
+        
+        # Preparar datos de rutas usando polylines si están disponibles
+        from api.serializers import RutaSerializer
+        serializer = RutaSerializer(ruta)
+        
+        if ruta.ruta_ida_polyline and ruta.ruta_regreso_polyline:
+            rutas_data = serializer.get_rutas_data_polyline(ruta)
+        else:
+            rutas_data = serializer.get_rutas_data(ruta)
+        
+        contexto = {
+            'rutas_data': json.dumps(rutas_data),
+            'inicio_direccion': ruta.origen_direccion,
+            'destino_direccion': ruta.destino_direccion,
+            'distancia_total': ruta.distancia_total_km,
+            'duracion_total': ruta.duracion_total_minutos,
+            'paquete': paquete,
+            'pagina_anterior': request.META.get('HTTP_REFERER', '/'),
+        }
+        
+        return render(request, 'map.html', contexto)
+        
+    except Exception as e:
+        messages.error(request, f"Error al cargar la ruta: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', '/'))

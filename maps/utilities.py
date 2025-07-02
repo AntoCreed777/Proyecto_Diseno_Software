@@ -4,6 +4,7 @@ from typing import Dict, Tuple, List, Optional
 import requests
 import math
 import polyline
+from .constants import UNIVERSIDAD_CONCEPCION, UNIVERSIDAD_CONCEPCION_COORDS_TUPLE, API_URLS, MAPA_CONFIG
 
 def obtener_coordenadas(direccion):
     """
@@ -133,8 +134,8 @@ def obtener_nodos_cercanos(lat: float, lon: float, radius: int = 50) -> List[Dic
         out body;
         """
         
-        url = "https://overpass-api.de/api/interpreter"
-        response = requests.post(url, data={'data': query}, timeout=30)
+        url = API_URLS["overpass"]
+        response = requests.post(url, data={'data': query}, timeout=MAPA_CONFIG["timeout_requests"])
         response.raise_for_status()
         
         data = response.json()
@@ -158,7 +159,7 @@ def obtener_nodos_cercanos(lat: float, lon: float, radius: int = 50) -> List[Dic
         out body;
         """
         
-        nodes_response = requests.post(url, data={'data': nodes_query}, timeout=30)
+        nodes_response = requests.post(url, data={'data': nodes_query}, timeout=MAPA_CONFIG["timeout_requests"])
         nodes_response.raise_for_status()
         
         nodes_data = nodes_response.json()
@@ -194,7 +195,7 @@ def calcular_ruta_entre_nodos(nodos: List[Dict], roundtrip: bool = True) -> Opti
         # Encontrar nodos más cercanos a las calles para cada punto
         nodos_optimizados = []
         for nodo in nodos_ruta:
-            nodos_cercanos = obtener_nodos_cercanos(nodo['lat'], nodo['lon'], 50)
+            nodos_cercanos = obtener_nodos_cercanos(nodo['lat'], nodo['lon'], MAPA_CONFIG["radio_busqueda_nodos"])
             if nodos_cercanos:
                 nodo_cercano = encontrar_nodo_mas_cercano(nodo['lat'], nodo['lon'], nodos_cercanos)
                 if nodo_cercano:
@@ -208,9 +209,9 @@ def calcular_ruta_entre_nodos(nodos: List[Dict], roundtrip: bool = True) -> Opti
         coordenadas = ";".join([f"{nodo['lon']},{nodo['lat']}" for nodo in nodos_optimizados])
         
         # URL para OSRM Route API
-        route_url = f"https://router.project-osrm.org/route/v1/driving/{coordenadas}?overview=full&steps=true"
+        route_url = f"{API_URLS['osrm_route']}/{coordenadas}?overview=full&steps=true"
         
-        response = requests.get(route_url, timeout=30)
+        response = requests.get(route_url, timeout=MAPA_CONFIG["timeout_requests"])
         response.raise_for_status()
         
         route_data = response.json()
@@ -355,10 +356,99 @@ def decodificar_polyline_manual(encoded):
     
     return coordinates
 
+def calcular_y_guardar_ruta_paquete(paquete):
+    """
+    Calcula la ruta de ida y regreso para un paquete y la guarda en la base de datos.
+    
+    Args:
+        paquete: Instancia del modelo Paquete
+    
+    Returns:
+        tuple: (ruta_creada, error_mensaje)
+    """
+    from api.models import Ruta
+    
+    try:
+        # Configurar direcciones
+        origen_direccion = UNIVERSIDAD_CONCEPCION["direccion"]
+        destino_direccion = paquete.direccion_envio_texto
+        
+        # Obtener coordenadas
+        origen_coords = UNIVERSIDAD_CONCEPCION_COORDS_TUPLE
+        destino_coords = obtener_coordenadas(destino_direccion)
+        
+        if not origen_coords or not destino_coords:
+            return None, "No se pudieron obtener las coordenadas para las direcciones"
+        
+        # Calcular ruta de ida
+        nodos_ida = [
+            {'lat': origen_coords[0], 'lon': origen_coords[1]},
+            {'lat': destino_coords[0], 'lon': destino_coords[1]}
+        ]
+        
+        ruta_ida = calcular_ruta_entre_nodos(nodos_ida, roundtrip=False)
+        
+        # Calcular ruta de regreso
+        nodos_regreso = [
+            {'lat': destino_coords[0], 'lon': destino_coords[1]},
+            {'lat': origen_coords[0], 'lon': origen_coords[1]}
+        ]
+        
+        ruta_regreso = calcular_ruta_entre_nodos(nodos_regreso, roundtrip=False)
+        
+        if not ruta_ida or not ruta_regreso:
+            return None, "No se pudieron calcular las rutas usando OSRM"
+        
+        # Procesar coordenadas para el frontend
+        coordenadas_ida = []
+        coordenadas_regreso = []
+        
+        if ruta_ida.get('geometria_completa'):
+            coordenadas_ida = decodificar_polyline(ruta_ida['geometria_completa'])
+            coordenadas_ida = [[lat, lng] for lat, lng in coordenadas_ida]
+        
+        if ruta_regreso.get('geometria_completa'):
+            coordenadas_regreso = decodificar_polyline(ruta_regreso['geometria_completa'])
+            coordenadas_regreso = [[lat, lng] for lat, lng in coordenadas_regreso]
+        
+        # Crear o actualizar ruta en la base de datos
+        ruta, created = Ruta.objects.update_or_create(
+            paquete=paquete,
+            defaults={
+                'tipo_ruta': 'completa',
+                
+                # Datos de ida
+                'ruta_ida_coordenadas': coordenadas_ida,
+                'ruta_ida_polyline': ruta_ida.get('geometria_completa', ''),
+                'distancia_ida_km': ruta_ida.get('distancia_km', 0),
+                'duracion_ida_minutos': int(ruta_ida.get('duracion_minutos', 0)),
+                
+                # Datos de regreso
+                'ruta_regreso_coordenadas': coordenadas_regreso,
+                'ruta_regreso_polyline': ruta_regreso.get('geometria_completa', ''),
+                'distancia_regreso_km': ruta_regreso.get('distancia_km', 0),
+                'duracion_regreso_minutos': int(ruta_regreso.get('duracion_minutos', 0)),
+                
+                # Metadatos
+                'origen_direccion': origen_direccion,
+                'destino_direccion': destino_direccion,
+                'origen_lat': origen_coords[0],
+                'origen_lng': origen_coords[1],
+                'destino_lat': destino_coords[0],
+                'destino_lng': destino_coords[1],
+            }
+        )
+        
+        return ruta, None
+        
+    except Exception as e:
+        error_msg = f"Error al calcular ruta para paquete {paquete.id}: {str(e)}"
+        return None, error_msg
+
 # Ejemplo de uso
 if __name__ == '__main__':
     # Ejemplo 1: Obtener coordenadas de una dirección
-    direccion = "Universidad de Concepcion, Concepcion, Bio Bio, Chile"
+    direccion = UNIVERSIDAD_CONCEPCION["direccion"]
     
     try:
         coordenadas = obtener_coordenadas(direccion=direccion)
