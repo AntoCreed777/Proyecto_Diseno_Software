@@ -174,7 +174,6 @@ class Ruta(models.Model):
     
     # Metadatos de la ruta
     fecha_calculo = models.DateTimeField(auto_now_add=True, help_text="Fecha y hora cuando se calculó la ruta")
-    fecha_en_que_se_ejecuto = models.DateTimeField(null=True, blank=True, help_text="Fecha y hora cuando se ejecutó la ruta")
     origen_direccion = models.CharField(max_length=500, help_text="Dirección de origen (Universidad)")
     destino_direccion = models.CharField(max_length=500, help_text="Dirección de destino del paquete")
     
@@ -187,12 +186,28 @@ class Ruta(models.Model):
     # Relación uno a uno con paquete
     paquete = models.OneToOneField('Paquete', on_delete=models.CASCADE, related_name='ruta')
     
-    # Duración real (registrada por el conductor)
-    duracion_real_minutos = models.PositiveIntegerField(
+    fecha_inicio_ruta = models.DateTimeField(
         null=True, 
         blank=True, 
-        help_text="Duración real que tomó al conductor completar la ruta (en minutos)"
+        help_text="Fecha y hora cuando el conductor inició la ruta"
     )
+    
+    fecha_fin_ruta = models.DateTimeField(
+        null=True, 
+        blank=True, 
+        help_text="Fecha y hora cuando el conductor completó la ruta"
+    )
+    
+    @property
+    def duracion_real_minutos(self):
+        """
+        Calcula la duración real en minutos basada en las fechas de inicio y fin.
+        Retorna None si no se han registrado ambas fechas.
+        """
+        if self.fecha_inicio_ruta and self.fecha_fin_ruta:
+            delta = self.fecha_fin_ruta - self.fecha_inicio_ruta
+            return int(delta.total_seconds() / 60)
+        return None
     
     class Meta:
         verbose_name = "Ruta"

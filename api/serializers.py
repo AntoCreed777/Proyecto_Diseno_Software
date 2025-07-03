@@ -182,13 +182,20 @@ class RutaSerializer(serializers.ModelSerializer):
     Serializer para el modelo Ruta con métodos optimizados para el frontend
     """
     rutas_data = serializers.SerializerMethodField()
-    rutas_data_polyline = serializers.SerializerMethodField()
+    rutas_data_polyline = serializers.SerializerMethodField(
+        help_text="Datos de rutas usando polylines comprimidos para mayor eficiencia de red"
+    )
+    
+    # Property calculada dinámicamente desde el modelo
+    duracion_real_minutos = serializers.ReadOnlyField(
+        help_text="Duración real de la ruta calculada entre fecha_inicio y fecha_fin"
+    )
     
     class Meta:
         model = Ruta
         fields = '__all__'
         read_only_fields = [
-            'fecha_calculo', 'distancia_total_km', 'duracion_total_minutos'
+            'fecha_calculo', 'distancia_total_km', 'duracion_total_minutos', 'duracion_real_minutos'
         ]
     
     def get_rutas_data(self, obj):
