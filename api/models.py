@@ -1,3 +1,10 @@
+"""
+Modelos de la aplicación API para sistema de gestión de paquetes y rutas.
+
+Este archivo contiene todos los modelos de Django que representan las entidades
+del sistema de gestión de envío de paquetes.
+"""
+
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -5,148 +12,356 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from maps.constants import UNIVERSIDAD_CONCEPCION, UNIVERSIDAD_CONCEPCION_COORDS_TUPLE
 
-### Modelo MR
+### MODELO RELACIONAL (MR) ###
 #
-# usuario(@id, password, nombre, apellido, email, telefono, fecha_registro, fecha_ultima_modificacion, rol)
+# usuario(@id, username, password, first_name, last_name, email, telefono, 
+#         fecha_registro, fecha_ultima_modificacion, rol, email_verified)
 # 
-# cliente(id_usuario, direccion_hogar)
+# cliente(id, id_usuario, direccion_hogar)
 #   - FK: id_usuario -> usuario(id)
 #
-# conductor(id_usuario, estado, id_vehiculo, id_despachador)
+# conductor(id, id_usuario, estado, id_vehiculo)
 #   - FK: id_usuario -> usuario(id)
-#   - FK: id_vehiculo -> vehiculo(id)
+#   - FK: id_vehiculo -> vehiculo(matricula)
 # 
-# admin(id_usuario, nivel_acceso)
+# admin(id, id_usuario, nivel_acceso)
 #   - FK: id_usuario -> usuario(id)
 #
-# despachador(id_usuario)
+# despachador(id, id_usuario)
 #   - FK: id_usuario -> usuario(id)
-#
-# ruta(@id, ruta_kml, duracion_estimada_minutos, distancia_km, fecha_en_que_se_ejecuto, id_paquete)
-#   - FK: id_paquete -> paquete(id)
 #
 # vehiculo(@matricula, marca, año_de_fabricacion)
 #
-# paquete(@id, dimensiones, peso, fecha_registro, fecha_entrega, estado, ubicacion_actual, direccion_envio, nombre_destinatario, rut_destinatario, telefono_destinatario, id_cliente, id_conductor, id_despachador)
+# paquete(@id, largo, ancho, alto, peso, fecha_registro, fecha_entrega, estado,
+#         ubicacion_actual_lat, ubicacion_actual_lng, ubicacion_actual_texto,
+#         direccion_envio_lat, direccion_envio_lng, direccion_envio_texto,
+#         nombre_destinatario, rut_destinatario, telefono_destinatario,
+#         id_cliente, id_conductor, id_despachador)
 #   - FK: id_cliente -> cliente(id)
 #   - FK: id_conductor -> conductor(id)
 #   - FK: id_despachador -> despachador(id)
+#
+# ruta(@id, tipo_ruta, ruta_ida_coordenadas, ruta_ida_polyline, distancia_ida_km,
+#      duracion_ida_minutos, ruta_regreso_coordenadas, ruta_regreso_polyline,
+#      distancia_regreso_km, duracion_regreso_minutos, distancia_total_km,
+#      duracion_total_minutos, fecha_calculo, fecha_en_que_se_ejecuto,
+#      origen_direccion, destino_direccion, origen_lat, origen_lng,
+#      destino_lat, destino_lng, fecha_inicio_ruta, fecha_fin_ruta, id_paquete)
+#   - FK: id_paquete -> paquete(id) [OneToOne]
 #
 # notificacion(@id, mensaje, fecha_envio, id_cliente, id_paquete)
 #   - FK: id_cliente -> cliente(id)
 #   - FK: id_paquete -> paquete(id)
 #
-### Fin Modelo MR
+### FIN MODELO RELACIONAL ###
 
+
+# ========== ENUMERACIONES Y CHOICES ==========
 
 class TiposRoles(models.TextChoices):
+    """Tipos de roles disponibles en el sistema."""
     CLIENTE = 'cliente', 'Cliente'
     CONDUCTOR = 'conductor', 'Conductor'
     DESPACHADOR = 'despachador', 'Despachador'
     ADMIN = 'admin', 'Admin'
 
-# Modelo base de usuario (Es la generalizacion del MER)
-
-class Usuario(AbstractUser):
-    # username, password, email, first_name, last_name ya existen
-    rol = models.CharField(
-        max_length=100,
-        choices=TiposRoles.choices
-    )
-    telefono = PhoneNumberField(blank=True, null=True)
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    fecha_ultima_modificacion = models.DateTimeField(auto_now=True)
-    email_verified = models.BooleanField(default=False, verbose_name="Correo verificado")
-
-class Cliente(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    direccion_hogar = models.CharField(max_length=255, blank=True, null=True)
-
 class EstadoConductor(models.TextChoices):
+    """Estados posibles de un conductor."""
     EN_RUTA = 'en_ruta', 'En ruta'
     DISPONIBLE = 'disponible', 'Disponible'
     NO_DISPONIBLE = 'no disponible', 'No disponible'
 
+class EstadoPaquete(models.TextChoices):
+    """Estados del ciclo de vida de un paquete."""
+    EN_BODEGA = 'en_bodega', 'En bodega'
+    EN_RUTA = 'en_ruta', 'En ruta'
+    ENTREGADO = 'entregado', 'Entregado'
+
+class TipoRuta(models.TextChoices):
+    """Tipos de ruta según su dirección."""
+    IDA = 'ida', 'Ruta de Ida'
+    REGRESO = 'regreso', 'Ruta de Regreso'
+    COMPLETA = 'completa', 'Ruta Completa (Ida y Regreso)'
+
+
+# ========== MODELOS DE USUARIOS ==========
+
+class Usuario(AbstractUser):
+    """
+    Modelo base de usuario extendido de AbstractUser.
+    
+    Representa a todos los usuarios del sistema con diferentes roles.
+    Hereda username, password, email, first_name, last_name de AbstractUser.
+    """
+    rol = models.CharField(
+        max_length=100,
+        choices=TiposRoles.choices,
+        help_text="Rol del usuario en el sistema"
+    )
+    telefono = PhoneNumberField(
+        blank=True, 
+        null=True,
+        help_text="Número de teléfono del usuario"
+    )
+    fecha_registro = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Fecha y hora de registro del usuario"
+    )
+    fecha_ultima_modificacion = models.DateTimeField(
+        auto_now=True,
+        help_text="Fecha y hora de la última modificación"
+    )
+    email_verified = models.BooleanField(
+        default=False, 
+        verbose_name="Correo verificado",
+        help_text="Indica si el correo electrónico ha sido verificado"
+    )
+
+    def __str__(self):
+        return f"{self.username} ({self.get_rol_display()})"
+
+
+class Cliente(models.Model):
+    """
+    Modelo que extiende Usuario para clientes del sistema.
+    
+    Los clientes pueden enviar paquetes y recibir notificaciones.
+    """
+    usuario = models.OneToOneField(
+        Usuario, 
+        on_delete=models.CASCADE,
+        help_text="Usuario asociado al cliente"
+    )
+    direccion_hogar = models.CharField(
+        max_length=255, 
+        blank=True, 
+        null=True,
+        help_text="Dirección del hogar del cliente"
+    )
+
+    def __str__(self):
+        return f"Cliente: {self.usuario.get_full_name()}"
+
+
 class Conductor(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    """
+    Modelo que extiende Usuario para conductores del sistema.
+    
+    Los conductores se encargan de entregar los paquetes.
+    """
+    usuario = models.OneToOneField(
+        Usuario, 
+        on_delete=models.CASCADE,
+        help_text="Usuario asociado al conductor"
+    )
     estado = models.CharField(
         max_length=100,
         choices=EstadoConductor.choices,
-        default=EstadoConductor.DISPONIBLE
+        default=EstadoConductor.DISPONIBLE,
+        help_text="Estado actual del conductor"
     )
-    vehiculo = models.ForeignKey('Vehiculo', on_delete=models.SET_NULL, null=True, blank=True)
+    vehiculo = models.ForeignKey(
+        'Vehiculo', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="Vehículo asignado al conductor"
+    )
+
+    def __str__(self):
+        return f"Conductor: {self.usuario.get_full_name()} ({self.get_estado_display()})"
+
 
 class Despachador(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    """
+    Modelo que extiende Usuario para despachadores del sistema.
+    
+    Los despachadores gestionan la asignación de paquetes a conductores.
+    """
+    usuario = models.OneToOneField(
+        Usuario, 
+        on_delete=models.CASCADE,
+        help_text="Usuario asociado al despachador"
+    )
+
+    def __str__(self):
+        return f"Despachador: {self.usuario.get_full_name()}"
+
 
 class Admin(models.Model):
-    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
+    """
+    Modelo que extiende Usuario para administradores del sistema.
+    
+    Los administradores tienen acceso completo al sistema.
+    """
+    usuario = models.OneToOneField(
+        Usuario, 
+        on_delete=models.CASCADE,
+        help_text="Usuario asociado al administrador"
+    )
     nivel_acceso = models.IntegerField(
         validators=[
             MinValueValidator(1),
             MaxValueValidator(5),
         ],
-        default=1
+        default=1,
+        help_text="Nivel de acceso del administrador (1-5)"
     )
 
-class Vehiculo(models.Model):
-    matricula = models.CharField(max_length=50, primary_key=True)
-    marca = models.CharField(max_length=100)
-    año_de_fabricacion = models.PositiveIntegerField()
+    def __str__(self):
+        return f"Admin: {self.usuario.get_full_name()} (Nivel {self.nivel_acceso})"
 
-class EstadoPaquete(models.TextChoices):
-    EN_BODEGA = 'en_bodega', 'En bodega'
-    EN_RUTA = 'en_ruta', 'En ruta'
-    ENTREGADO = 'entregado', 'Entregado'
+
+# ========== MODELOS DE RECURSOS ==========
+
+class Vehiculo(models.Model):
+    """
+    Modelo que representa los vehículos utilizados para entregas.
+    """
+    matricula = models.CharField(
+        max_length=50, 
+        primary_key=True,
+        help_text="Matrícula única del vehículo"
+    )
+    marca = models.CharField(
+        max_length=100,
+        help_text="Marca del vehículo"
+    )
+    año_de_fabricacion = models.PositiveIntegerField(
+        help_text="Año de fabricación del vehículo"
+    )
+
+    def __str__(self):
+        return f"{self.marca} - {self.matricula} ({self.año_de_fabricacion})"
+
+    class Meta:
+        verbose_name = "Vehículo"
+        verbose_name_plural = "Vehículos"
+
+
+# ========== MODELOS DE PAQUETES Y RUTAS ==========
 
 class Paquete(models.Model):
+    """
+    Modelo que representa un paquete a entregar.
+    
+    Contiene toda la información necesaria para el envío, incluyendo
+    dimensiones, ubicaciones, destinatario y estado actual.
+    """
     id = models.AutoField(primary_key=True)
 
-    # Dimensiones
-    largo = models.FloatField(validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")])
-    ancho = models.FloatField(validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")])
-    alto = models.FloatField(validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")])
+    # Dimensiones físicas del paquete
+    largo = models.FloatField(
+        validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")],
+        help_text="Largo del paquete en centímetros"
+    )
+    ancho = models.FloatField(
+        validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")],
+        help_text="Ancho del paquete en centímetros"
+    )
+    alto = models.FloatField(
+        validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")],
+        help_text="Alto del paquete en centímetros"
+    )
+    peso = models.FloatField(
+        validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")],
+        help_text="Peso del paquete en kilogramos"
+    )
 
-    peso = models.FloatField(validators=[MinValueValidator(0.01, "El valor debe ser mayor a 0.")])
-    fecha_registro = models.DateTimeField(auto_now_add=True)
-    fecha_entrega = models.DateTimeField(null=True, blank=True)
+    # Fechas del ciclo de vida
+    fecha_registro = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Fecha y hora de registro del paquete"
+    )
+    fecha_entrega = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text="Fecha y hora de entrega del paquete"
+    )
 
+    # Estado del paquete
     estado = models.CharField(
         max_length=10,
         choices=EstadoPaquete.choices,
-        default=EstadoPaquete.EN_BODEGA
+        default=EstadoPaquete.EN_BODEGA,
+        help_text="Estado actual del paquete"
     )
 
-    # Ubicacion actual
-    ubicacion_actual_lat = models.FloatField(default=UNIVERSIDAD_CONCEPCION_COORDS_TUPLE[0])
-    ubicacion_actual_lng = models.FloatField(default=UNIVERSIDAD_CONCEPCION_COORDS_TUPLE[1])
-    ubicacion_actual_texto =  models.CharField(
+    # Ubicación actual del paquete
+    ubicacion_actual_lat = models.FloatField(
+        default=UNIVERSIDAD_CONCEPCION_COORDS_TUPLE[0],
+        help_text="Latitud de la ubicación actual"
+    )
+    ubicacion_actual_lng = models.FloatField(
+        default=UNIVERSIDAD_CONCEPCION_COORDS_TUPLE[1],
+        help_text="Longitud de la ubicación actual"
+    )
+    ubicacion_actual_texto = models.CharField(
         max_length=200,
-        default=UNIVERSIDAD_CONCEPCION["direccion"]
+        default=UNIVERSIDAD_CONCEPCION["direccion"],
+        help_text="Descripción textual de la ubicación actual"
     )
 
-    # Direccion envio
-    direccion_envio_lat = models.FloatField()
-    direccion_envio_lng = models.FloatField()
-    direccion_envio_texto = models.CharField(max_length=200)
+    # Dirección de envío (destino)
+    direccion_envio_lat = models.FloatField(
+        help_text="Latitud de la dirección de envío"
+    )
+    direccion_envio_lng = models.FloatField(
+        help_text="Longitud de la dirección de envío"
+    )
+    direccion_envio_texto = models.CharField(
+        max_length=200,
+        help_text="Descripción textual de la dirección de envío"
+    )
 
-    nombre_destinatario = models.CharField(max_length=255)
-    rut_destinatario = models.CharField(max_length=20)
-    telefono_destinatario = PhoneNumberField()
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='paquetes')
-    conductor = models.ForeignKey(Conductor, on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
-    despachador = models.ForeignKey('Despachador', on_delete=models.SET_NULL, null=True, blank=True, related_name='paquetes')
+    # Información del destinatario
+    nombre_destinatario = models.CharField(
+        max_length=255,
+        help_text="Nombre completo del destinatario"
+    )
+    rut_destinatario = models.CharField(
+        max_length=20,
+        help_text="RUT del destinatario"
+    )
+    telefono_destinatario = PhoneNumberField(
+        help_text="Teléfono de contacto del destinatario"
+    )
 
-class Notificacion(models.Model):
-    mensaje = models.TextField()
-    fecha_envio = models.DateTimeField(auto_now_add=True)
-    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='notificaciones')
-    paquete = models.ForeignKey(Paquete, on_delete=models.SET_NULL, null=True, blank=True, related_name='notificaciones')
+    # Relaciones con otros modelos
+    cliente = models.ForeignKey(
+        Cliente, 
+        on_delete=models.CASCADE, 
+        related_name='paquetes',
+        help_text="Cliente que envía el paquete"
+    )
+    conductor = models.ForeignKey(
+        Conductor, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='paquetes',
+        help_text="Conductor asignado para la entrega"
+    )
+    despachador = models.ForeignKey(
+        'Despachador', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='paquetes',
+        help_text="Despachador que gestionó el paquete"
+    )
 
-class TipoRuta(models.TextChoices):
-    IDA = 'ida', 'Ruta de Ida'
-    REGRESO = 'regreso', 'Ruta de Regreso'
-    COMPLETA = 'completa', 'Ruta Completa (Ida y Regreso)'
+    def __str__(self):
+        return f"Paquete #{self.id} - {self.nombre_destinatario} ({self.get_estado_display()})"
+
+    @property
+    def volumen_cm3(self):
+        """Calcula el volumen del paquete en centímetros cúbicos."""
+        return self.largo * self.ancho * self.alto
+
+    class Meta:
+        verbose_name = "Paquete"
+        verbose_name_plural = "Paquetes"
 
 class Ruta(models.Model):
     """
@@ -221,3 +436,41 @@ class Ruta(models.Model):
         self.distancia_total_km = self.distancia_ida_km + self.distancia_regreso_km
         self.duracion_total_minutos = self.duracion_ida_minutos + self.duracion_regreso_minutos
         super().save(*args, **kwargs)
+
+# ========== MODELOS DE INFORMACION PARA USUARIOS ==========
+class Notificacion(models.Model):
+    """
+    Modelo que representa notificaciones enviadas a clientes.
+    
+    Las notificaciones mantienen informados a los clientes sobre
+    el estado de sus paquetes.
+    """
+    mensaje = models.TextField(
+        help_text="Contenido del mensaje de la notificación"
+    )
+    fecha_envio = models.DateTimeField(
+        auto_now_add=True,
+        help_text="Fecha y hora de envío de la notificación"
+    )
+    cliente = models.ForeignKey(
+        Cliente, 
+        on_delete=models.CASCADE, 
+        related_name='notificaciones',
+        help_text="Cliente que recibe la notificación"
+    )
+    paquete = models.ForeignKey(
+        Paquete, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='notificaciones',
+        help_text="Paquete relacionado con la notificación"
+    )
+
+    def __str__(self):
+        return f"Notificación para {self.cliente.usuario.get_full_name()} - {self.fecha_envio.strftime('%d/%m/%Y %H:%M')}"
+
+    class Meta:
+        verbose_name = "Notificación"
+        verbose_name_plural = "Notificaciones"
+        ordering = ['-fecha_envio']
