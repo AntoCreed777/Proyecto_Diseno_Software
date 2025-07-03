@@ -3,13 +3,9 @@ from django.template import Template, Context
 from django.template import loader
 from django.shortcuts import render, redirect
 from api.models import Paquete, Cliente, Usuario, Despachador, Conductor
-from api.serializers import UsuarioSerializer, PaqueteSerializer, ClienteSerializer
-from rest_framework.exceptions import ValidationError
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from accounts.views import notificar_cambio_estado_paquete
-from maps.utilities import obtener_coordenadas
-from geopy.exc import GeocoderTimedOut
 
 def inicio(request):
 
@@ -61,64 +57,24 @@ def conductores(request):
 
 def registrar_paquete(request):
     if request.method == 'POST':
-        dimensiones = request.POST.get('dimensiones', '')
-        try:
-            largo, ancho, alto = [float(x.strip()) for x in dimensiones.lower().replace(' ', '').split('x')]
-        except Exception:
-            messages.error(request, "Formato de dimensiones inválido. Use 'largo x ancho x alto'.")
-            clientes = Cliente.objects.select_related('usuario').all()
-            return render(request, 'despachador/registrar_paquete.html', {
-                'clientes': clientes,
-                'errors_paquete': {'dimensiones': ['Formato inválido. Use "largo x ancho x alto".']},
-            })
+        from .forms import RegistroPaqueteForm
         
-        # Obtener coordenadas de la dirección de envío
-        direccion_envio_texto = request.POST.get('direccion_envio_texto')
-        direccion_envio_lat = 0.0
-        direccion_envio_lng = 0.0
-        
-        try:
-            coordenadas_envio = obtener_coordenadas(direccion_envio_texto)
-            if coordenadas_envio:
-                direccion_envio_lat = coordenadas_envio[0]
-                direccion_envio_lng = coordenadas_envio[1]
-            else:
-                messages.warning(request, "No se pudieron obtener las coordenadas de la dirección de envío. Se usarán coordenadas por defecto.")
-        except:
-            messages.warning(request, "Error al obtener coordenadas de la dirección. Se usarán coordenadas por defecto.")
-        
-        data = {
-            'largo': largo,
-            'ancho': ancho,
-            'alto': alto,
-            'peso': request.POST.get('peso'),
-            'direccion_envio_lat': direccion_envio_lat,
-            'direccion_envio_lng': direccion_envio_lng,
-            'direccion_envio_texto': direccion_envio_texto,
-            'nombre_destinatario': request.POST.get('nombre_destinatario'),
-            'rut_destinatario': request.POST.get('rut_destinatario'),
-            'telefono_destinatario': request.POST.get('telefono_destinatario'),
-            'cliente': request.POST.get('cliente_id'),
-            'despachador': Despachador.objects.get(usuario=request.user).pk,
-        }
-        
-        serializer = PaqueteSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            messages.success(request, 'Paquete registrado exitosamente.')
-            return redirect('paquetes_despachador')
+        form = RegistroPaqueteForm(request.POST)
+        if form.is_valid():
+            try:
+                despachador = Despachador.objects.get(usuario=request.user)
+                paquete = form.save(commit=True, despachador=despachador)
+                messages.success(request, 'Paquete registrado exitosamente.')
+                return redirect('paquetes_despachador')
+            except Exception as e:
+                messages.error(request, f'Error al registrar el paquete: {str(e)}')
+                return render(request, 'despachador/registrar_paquete.html', {'form': form})
         else:
-            clientes = Cliente.objects.select_related('usuario').all()
-            return render(request, 'despachador/registrar_paquete.html', {
-                'clientes': clientes,
-                'errors_paquete': serializer.errors,
-            })
+            return render(request, 'despachador/registrar_paquete.html', {'form': form})
     else:
-        # Método GET - mostrar formulario vacío
-        clientes = Cliente.objects.select_related('usuario').all()
-        return render(request, 'despachador/registrar_paquete.html', {
-            'clientes': clientes,
-        })
+        from .forms import RegistroPaqueteForm
+        form = RegistroPaqueteForm()
+        return render(request, 'despachador/registrar_paquete.html', {'form': form})
 
 def registrar_cliente(request):
     if request.method == 'POST':
