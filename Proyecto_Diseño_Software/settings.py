@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'despachador',
     'Cliente.apps.ClienteConfig',
     'captcha',
+    'administrador',
 ]
 
 AUTH_USER_MODEL = 'api.Usuario'

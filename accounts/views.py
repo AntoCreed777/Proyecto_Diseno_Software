@@ -57,7 +57,7 @@ def login_view(request):
                login(request, user)
 
                if user.rol == TiposRoles.ADMIN:
-                    return redirect('/admin/')
+                    return redirect('/administrador/inicio')
                elif user.rol == TiposRoles.CONDUCTOR:
                     return redirect('/conductor/inicio')
                elif user.rol == TiposRoles.DESPACHADOR:
