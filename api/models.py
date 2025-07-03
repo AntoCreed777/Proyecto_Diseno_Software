@@ -320,8 +320,8 @@ class Paquete(models.Model):
         help_text="Nombre completo del destinatario"
     )
     rut_destinatario = models.CharField(
-        max_length=20,
-        help_text="RUT del destinatario"
+        max_length=12,
+        help_text="RUT del destinatario (formato: 12.345.678-9)"
     )
     telefono_destinatario = PhoneNumberField(
         help_text="Teléfono de contacto del destinatario"

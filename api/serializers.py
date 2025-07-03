@@ -723,13 +723,12 @@ class PaqueteSerializer(serializers.ModelSerializer):
             str: RUT validado
             
         Raises:
-            ValidationError: Si el RUT está vacío o excede 20 caracteres
+            ValidationError: Si el RUT está vacío, excede 12 caracteres
         """
         if not value or len(value.strip()) == 0:
             raise serializers.ValidationError("El RUT del destinatario es obligatorio.")
-        if len(value) > 20:
-            raise serializers.ValidationError("El RUT no puede superar los 20 caracteres.")
-        return value
+        if len(value) > 12:
+            raise serializers.ValidationError("El RUT no puede superar los 12 caracteres.")
 
     def validate_direccion_envio_texto(self, value):
         """
