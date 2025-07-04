@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ubicación de {{ direccion }}</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    
+    <!-- CSS personalizado -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/ubicacion_direccion.css' %}">
+</head>
+
+<body>
+    <div class="ruta-info-container">
+        <div class="header-mapa">
+            <h4 class="titulo-mapa">📍 Confirmar Ubicación de Entrega</h4>
+            <button onclick="regresarPaginaAnterior()" class="btn-volver">
+                <span>←</span>
+                <span>Volver</span>
+            </button>
+        </div>
+        <div id="direccion-info">
+            <p><strong>Dirección:</strong> <span id="direccion-texto">{{ direccion }}</span></p>
+            <p class="direccion-ayuda">Verifica que el marcador azul esté en la ubicación correcta para la entrega del paquete.</p>
+        </div>
+    </div>
+    
+    <div id="map" class="mapa-container"></div>
+    
+    <!-- Botones de confirmación -->
+    <div class="confirmacion-container">
+        <div class="confirmacion-info">
+            <p><strong>¿El marcador está en la ubicación correcta?</strong></p>
+            <p class="confirmacion-ayuda">Verifica que el marcador azul corresponde a la dirección buscada.</p>
+        </div>
+        <div class="confirmacion-botones">
+            <button id="btn-confirmar" class="btn btn-confirmar" onclick="confirmarUbicacion()">
+                <span>✓</span>
+                <span>Confirmar Ubicación</span>
+            </button>
+            <button id="btn-rechazar" class="btn btn-rechazar" onclick="rechazarUbicacion()">
+                <span>✗</span>
+                <span>Ubicación Incorrecta</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+    <!-- JavaScript personalizado para mapa de ubicación -->
+    <script src="{% static 'js/ubicacion_direccion.js' %}"></script>
+    
+    <script>
+        // Inicializar el mapa con los datos de Django
+        document.addEventListener('DOMContentLoaded', function() {
+            const coordenadas = {{ coordenadas|safe }};
+            const paginaAnterior = '{{ pagina_anterior|escapejs }}';
+
+            inicializarMapaUbicacion(coordenadas, paginaAnterior);
+        });
+    </script>
+</body>
+</html>

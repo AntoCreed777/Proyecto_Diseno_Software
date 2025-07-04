@@ -237,3 +237,58 @@ def map_paquete(request, paquete_id):
     except Exception as e:
         messages.error(request, f"Error al cargar la ruta: {str(e)}")
         return redirect(request.META.get('HTTP_REFERER', '/'))
+
+
+@login_required(login_url='/accounts/login/')
+def map_direccion(request):
+    """
+    Vista para mostrar la ubicación de una dirección específica en el mapa
+    
+    Archivos relacionados:
+    - Template: ubicacion_direccion.html
+    - JavaScript: ubicacion_direccion.js
+    - CSS: ubicacion_direccion.css
+    
+    Parámetros GET:
+    - direccion: Dirección en texto a geolocalizar y mostrar
+    
+    Parámetros de retorno (cuando se confirma/rechaza):
+    - ubicacion_confirmada: 'true' si se confirmó, 'false' si se rechazó
+    - lat: Latitud de la ubicación (solo si se confirmó)
+    - lng: Longitud de la ubicación (solo si se confirmó)
+    
+    Funcionalidad:
+    - Geolocaliza una dirección usando la función obtener_coordenadas()
+    - Muestra un marcador en el mapa con la ubicación encontrada
+    - Permite al usuario confirmar o rechazar la ubicación
+    - Redirige a la página anterior con los resultados
+    - Maneja errores de geolocalización y timeouts
+    """
+    direccion = request.GET.get('direccion', '')
+    
+    if not direccion:
+        messages.error(request, "No se proporcionó una dirección.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+    
+    try:
+        # Obtener coordenadas de la dirección
+        coordenadas = obtener_coordenadas(direccion=direccion)
+        
+        if not coordenadas:
+            messages.error(request, "No se pudo geolocalizar la dirección.")
+            return redirect(request.META.get('HTTP_REFERER', '/'))
+        
+        contexto = {
+            'coordenadas': [coordenadas[0], coordenadas[1]],
+            'direccion': direccion,
+            'pagina_anterior': request.META.get('HTTP_REFERER', '/'),
+        }
+        
+        return render(request, 'ubicacion_direccion.html', context=contexto)
+        
+    except GeocoderTimedOut:
+        messages.error(request, "Tiempo de espera agotado al intentar geolocalizar la dirección.")
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+    except Exception as e:
+        messages.error(request, f"Error al obtener la ubicación: {str(e)}")
+        return redirect(request.META.get('HTTP_REFERER', '/'))

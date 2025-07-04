@@ -7,4 +7,5 @@ app_name = 'maps'  # Define el namespace
 urlpatterns = [
     path('', views.map, name='map'),
     path('paquete/<int:paquete_id>/', views.map_paquete, name='map_paquete'),
+    path('direccion/', views.map_direccion, name='map_direccion')
 ]

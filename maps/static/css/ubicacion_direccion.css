@@ -1,0 +1,239 @@
+/* 
+ * Estilos específicos para la página de ubicación de dirección
+ * 
+ * Archivos relacionados:
+ * - Template: ubicacion_direccion.html
+ * - JavaScript: ubicacion_direccion.js
+ * - Vista: map_direccion (en views.py)
+ * 
+ * Propósito: Mostrar una dirección específica en el mapa con un marcador
+ */
+
+.btn-volver {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-volver:hover {
+    background-color: #5a6268;
+}
+
+.btn-volver:active {
+    background-color: #495057;
+}
+
+.header-mapa {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.titulo-mapa {
+    margin: 0;
+    color: #495057;
+    font-size: 1.2rem;
+}
+
+.ruta-info-container {
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+#direccion-info {
+    margin-top: 8px;
+}
+
+#direccion-info p {
+    margin: 5px 0;
+    color: #333;
+    font-size: 0.95rem;
+}
+
+#direccion-texto {
+    font-weight: 500;
+    color: #007bff;
+}
+
+.direccion-ayuda {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+    margin-top: 8px;
+}
+
+.mapa-container {
+    height: 500px;
+    width: 100%;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+/* Estilos para la sección de confirmación */
+.confirmacion-container {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    margin-top: 0;
+}
+
+.confirmacion-info {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.confirmacion-info p {
+    margin: 5px 0;
+    color: #333;
+}
+
+.confirmacion-info p:first-child {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.confirmacion-ayuda {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.confirmacion-botones {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 160px;
+    justify-content: center;
+}
+
+.btn-confirmar {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-confirmar:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+}
+
+.btn-confirmar:active {
+    background-color: #1e7e34;
+    transform: translateY(0);
+}
+
+.btn-rechazar {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-rechazar:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+.btn-rechazar:active {
+    background-color: #bd2130;
+    transform: translateY(0);
+}
+
+/* Estados de botones deshabilitados */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn:disabled:hover {
+    transform: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .header-mapa {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .btn-volver {
+        align-self: flex-end;
+    }
+    
+    .titulo-mapa {
+        font-size: 1.1rem;
+    }
+    
+    .mapa-container {
+        height: 400px;
+    }
+    
+    .confirmacion-botones {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .btn {
+        width: 100%;
+        max-width: 250px;
+    }
+}
+
+@media (max-width: 480px) {
+    .mapa-container {
+        height: 350px;
+    }
+    
+    .ruta-info-container {
+        padding: 8px;
+    }
+    
+    .confirmacion-container {
+        padding: 10px;
+    }
+    
+    .titulo-mapa {
+        font-size: 1rem;
+    }
+    
+    #direccion-info p {
+        font-size: 0.9rem;
+    }
+    
+    .confirmacion-info p:first-child {
+        font-size: 0.95rem;
+    }
+    
+    .confirmacion-ayuda {
+        font-size: 0.85rem;
+    }
+    
+    .btn {
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+}

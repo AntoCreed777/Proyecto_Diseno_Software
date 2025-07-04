@@ -80,7 +80,7 @@ class RegistroPaqueteForm(forms.ModelForm):
         
         return telefono
 
-    def save(self, commit=True, despachador=None):
+    def save(self, commit=True, despachador=None, skip_coordinates=False):
         paquete = super().save(commit=False)
         
         # Procesar dimensiones
@@ -92,25 +92,26 @@ class RegistroPaqueteForm(forms.ModelForm):
         if despachador:
             paquete.despachador = despachador
         
-        # Obtener coordenadas de la dirección de envío
-        direccion = self.cleaned_data['direccion_envio_texto']
-        try:
-            coordenadas = obtener_coordenadas(direccion)
-            if coordenadas:
-                paquete.direccion_envio_lat = coordenadas[0]
-                paquete.direccion_envio_lng = coordenadas[1]
-            else:
-                # Usar coordenadas por defecto si no se pueden obtener
+        # Obtener coordenadas de la dirección de envío solo si no se van a confirmar manualmente
+        if not skip_coordinates:
+            direccion = self.cleaned_data['direccion_envio_texto']
+            try:
+                coordenadas = obtener_coordenadas(direccion)
+                if coordenadas:
+                    paquete.direccion_envio_lat = coordenadas[0]
+                    paquete.direccion_envio_lng = coordenadas[1]
+                else:
+                    # Usar coordenadas por defecto si no se pueden obtener
+                    paquete.direccion_envio_lat = -36.8485
+                    paquete.direccion_envio_lng = -73.0324
+            except GeocoderTimedOut:
+                # Usar coordenadas por defecto en caso de timeout
                 paquete.direccion_envio_lat = -36.8485
                 paquete.direccion_envio_lng = -73.0324
-        except GeocoderTimedOut:
-            # Usar coordenadas por defecto en caso de timeout
-            paquete.direccion_envio_lat = -36.8485
-            paquete.direccion_envio_lng = -73.0324
-        except Exception:
-            # Usar coordenadas por defecto para cualquier otro error
-            paquete.direccion_envio_lat = -36.8485
-            paquete.direccion_envio_lng = -73.0324
+            except Exception:
+                # Usar coordenadas por defecto para cualquier otro error
+                paquete.direccion_envio_lat = -36.8485
+                paquete.direccion_envio_lng = -73.0324
         
         if commit:
             paquete.save()

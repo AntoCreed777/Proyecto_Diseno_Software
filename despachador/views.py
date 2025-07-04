@@ -56,25 +56,157 @@ def conductores(request):
     return render(request, 'despachador/conductores.html', {'conductores': conductores})
 
 def registrar_paquete(request):
+    """
+    Vista para registrar un nuevo paquete con confirmación de ubicación.
+    
+    Flujo:
+    1. Usuario llena el formulario y envía
+    2. Se guarda temporalmente en sesión
+    3. Se redirige a confirmación de ubicación
+    4. Usuario confirma/rechaza la ubicación
+    5. Se guarda el paquete o se vuelve al formulario
+    """
+    from .forms import RegistroPaqueteForm
+    
+    # Verificar si se está regresando de la confirmación de ubicación
+    ubicacion_confirmada = request.GET.get('ubicacion_confirmada')
+    
+    if ubicacion_confirmada is not None:
+        # Se está regresando de la página de confirmación de ubicación
+        return manejar_confirmacion_ubicacion(request, ubicacion_confirmada)
+    
     if request.method == 'POST':
-        from .forms import RegistroPaqueteForm
         
+        # Procesamiento inicial del formulario
         form = RegistroPaqueteForm(request.POST)
         if form.is_valid():
             try:
-                despachador = Despachador.objects.get(usuario=request.user)
-                paquete = form.save(commit=True, despachador=despachador)
-                messages.success(request, 'Paquete registrado exitosamente.')
-                return redirect('paquetes_despachador')
+                # Guardar los datos del formulario en la sesión para usar después
+                request.session['paquete_form_data'] = request.POST.dict()
+                
+                # Obtener la dirección para confirmar
+                direccion = form.cleaned_data['direccion_envio_texto']
+                
+                # Redirigir a la página de confirmación de ubicación
+                from django.urls import reverse
+                from urllib.parse import urlencode
+                
+                params = urlencode({'direccion': direccion})
+                url = f"{reverse('maps:map_direccion')}?{params}"
+                
+                return redirect(url)
+                
             except Exception as e:
-                messages.error(request, f'Error al registrar el paquete: {str(e)}')
+                messages.error(request, f'Error al procesar el paquete: {str(e)}')
                 return render(request, 'despachador/registrar_paquete.html', {'form': form})
         else:
+            # Formulario no válido
             return render(request, 'despachador/registrar_paquete.html', {'form': form})
     else:
-        from .forms import RegistroPaqueteForm
+        # GET request - mostrar formulario vacío
         form = RegistroPaqueteForm()
         return render(request, 'despachador/registrar_paquete.html', {'form': form})
+
+def manejar_confirmacion_ubicacion(request, ubicacion_confirmada):
+    """
+    Maneja la respuesta de la confirmación de ubicación.
+    
+    Args:
+        request: HttpRequest object
+        ubicacion_confirmada: 'true' si confirmó, 'false' si rechazó
+    
+    Returns:
+        HttpResponse apropiado según la confirmación
+    """
+    from .forms import RegistroPaqueteForm
+    
+    # Recuperar los datos del formulario de la sesión
+    form_data = request.session.get('paquete_form_data')
+    if not form_data:
+        messages.error(request, 'Se perdieron los datos del formulario. Por favor, inténtalo de nuevo.')
+        return redirect('registrar_paquete')
+    
+    if ubicacion_confirmada == 'true':
+        # Usuario confirmó la ubicación - guardar el paquete
+        return procesar_ubicacion_confirmada(request, form_data)
+    
+    elif ubicacion_confirmada == 'false':
+        # Usuario rechazó la ubicación - volver al formulario
+        return procesar_ubicacion_rechazada(request, form_data)
+    
+    else:
+        # Parámetro inválido
+        messages.error(request, 'Parámetro de confirmación inválido.')
+        form = RegistroPaqueteForm(form_data)
+        return render(request, 'despachador/registrar_paquete.html', {'form': form})
+
+def procesar_ubicacion_confirmada(request, form_data):
+    """
+    Procesa el caso cuando el usuario confirma la ubicación.
+    """
+    from .forms import RegistroPaqueteForm
+    
+    lat = request.GET.get('lat')
+    lng = request.GET.get('lng')
+    
+    if not lat or not lng:
+        messages.error(request, 'No se recibieron las coordenadas confirmadas.')
+        form = RegistroPaqueteForm(form_data)
+        return render(request, 'despachador/registrar_paquete.html', {'form': form})
+    
+    try:
+        # Crear el formulario con los datos guardados
+        form = RegistroPaqueteForm(form_data)
+        
+        if form.is_valid():
+            # Obtener el despachador
+            despachador = Despachador.objects.get(usuario=request.user)
+            
+            # Guardar el paquete sin calcular coordenadas automáticamente
+            paquete = form.save(commit=False, despachador=despachador, skip_coordinates=True)
+            
+            # Usar las coordenadas confirmadas por el usuario
+            paquete.direccion_envio_lat = float(lat)
+            paquete.direccion_envio_lng = float(lng)
+            paquete.save()
+            
+            # Limpiar la sesión
+            del request.session['paquete_form_data']
+            
+            messages.success(request, 'Paquete registrado exitosamente con ubicación confirmada.')
+            return redirect('paquetes_despachador')
+        else:
+            messages.error(request, 'Error en los datos del formulario.')
+            return render(request, 'despachador/registrar_paquete.html', {'form': form})
+            
+    except Despachador.DoesNotExist:
+        messages.error(request, 'No se encontró el despachador asociado a tu usuario.')
+        form = RegistroPaqueteForm(form_data)
+        return render(request, 'despachador/registrar_paquete.html', {'form': form})
+        
+    except ValueError as e:
+        messages.error(request, 'Las coordenadas recibidas no son válidas.')
+        form = RegistroPaqueteForm(form_data)
+        return render(request, 'despachador/registrar_paquete.html', {'form': form})
+        
+    except Exception as e:
+        messages.error(request, f'Error al registrar el paquete: {str(e)}')
+        form = RegistroPaqueteForm(form_data)
+        return render(request, 'despachador/registrar_paquete.html', {'form': form})
+
+def procesar_ubicacion_rechazada(request, form_data):
+    """
+    Procesa el caso cuando el usuario rechaza la ubicación.
+    """
+    from .forms import RegistroPaqueteForm
+    
+    # Volver al formulario con los datos originales
+    form = RegistroPaqueteForm(form_data)
+    messages.warning(request, 
+        'Ubicación no confirmada. Por favor, ingresa una dirección más específica y detallada.')
+    
+    # No limpiar la sesión para que el usuario pueda volver a intentar
+    return render(request, 'despachador/registrar_paquete.html', {'form': form})
 
 def registrar_cliente(request):
     if request.method == 'POST':
