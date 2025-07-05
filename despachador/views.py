@@ -8,8 +8,28 @@ from django.views.decorators.http import require_POST
 from accounts.views import notificar_cambio_estado_paquete
 
 def inicio(request):
-
-    return render(request,'despachador/inicio.html')
+    from datetime import date
+    from api.models import Paquete, Conductor
+    
+    # Obtener estadísticas
+    paquetes_en_bodega = Paquete.objects.filter(estado='En_Bodega').count()
+    paquetes_en_ruta = Paquete.objects.filter(estado='En_ruta').count()
+    conductores_disponibles = Conductor.objects.filter(estado='disponible').count()
+    
+    # Paquetes entregados hoy
+    paquetes_entregados_hoy = Paquete.objects.filter(
+        estado='Entregado',
+        fecha_entrega = date.today()
+    ).count()
+    
+    context = {
+        'paquetes_en_bodega': paquetes_en_bodega,
+        'paquetes_en_ruta': paquetes_en_ruta,
+        'conductores_disponibles': conductores_disponibles,
+        'paquetes_entregados_hoy': paquetes_entregados_hoy,
+    }
+    
+    return render(request, 'despachador/inicio.html', context)
 
 def paquetes(request):
     paquetes = Paquete.objects.all()
@@ -240,7 +260,14 @@ def cambiar_estado_paquete(request):
     if request.method == 'POST':
         paquete_id = request.POST.get('paquete_id')
         paquete = Paquete.objects.get(id=paquete_id)
-        paquete.estado = request.POST.get('estado')
+        nuevo_estado = request.POST.get('estado')
+        paquete.estado = nuevo_estado
+        
+        # Si el estado cambia a "Entregado", establecer la fecha de entrega
+        if nuevo_estado == 'Entregado':
+            from datetime import date
+            paquete.fecha_entrega = date.today()
+        
         paquete.save()
         notificar_cambio_estado_paquete(paquete)
     return redirect('paquetes_despachador')

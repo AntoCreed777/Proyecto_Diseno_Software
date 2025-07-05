@@ -78,7 +78,7 @@ class RegistroPaqueteForm(forms.ModelForm):
         if not telefono_str.startswith('+56'):
             raise forms.ValidationError("El teléfono debe comenzar con +56")
         
-        return telefono
+        return telefono_str
 
     def save(self, commit=True, despachador=None, skip_coordinates=False):
         paquete = super().save(commit=False)

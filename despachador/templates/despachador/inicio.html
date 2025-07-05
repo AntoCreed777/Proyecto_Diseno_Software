@@ -5,5 +5,28 @@ Inicio
 {% endblock %}
 
 {% block content %}
+    <h1>Dashboard del Despachador</h1>
     
+    <!-- Estadísticas principales -->
+    <div style="display: flex; justify-content: space-between; margin-bottom: 30px; gap: 20px;">
+        <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; text-align: center; flex: 1; background: #f8f9fa;">
+            <h3 style="margin-bottom: 10px;">Paquetes en bodega</h3>
+            <p style="font-size: 28px; font-weight: bold; margin: 0; color: #333;">{{ paquetes_en_bodega|default:"0" }}</p>
+        </div>
+        
+        <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; text-align: center; flex: 1; background: #f8f9fa;">
+            <h3 style="margin-bottom: 10px;">Paquetes en ruta</h3>
+            <p style="font-size: 28px; font-weight: bold; margin: 0; color: #333;">{{ paquetes_en_ruta|default:"0" }}</p>
+        </div>
+        
+        <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; text-align: center; flex: 1; background: #f8f9fa;">
+            <h3 style="margin-bottom: 10px;">Conductores disponibles</h3>
+            <p style="font-size: 28px; font-weight: bold; margin: 0; color: #333;">{{ conductores_disponibles|default:"0" }}</p>
+        </div>
+        
+        <div style="border: 1px solid #ddd; padding: 20px; border-radius: 8px; text-align: center; flex: 1; background: #f8f9fa;">
+            <h3 style="margin-bottom: 10px;">Paquetes entregados hoy</h3>
+            <p style="font-size: 28px; font-weight: bold; margin: 0; color: #333;">{{ paquetes_entregados_hoy|default:"0" }}</p>
+        </div>
+    </div>
 {% endblock %}
