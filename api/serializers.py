@@ -612,6 +612,14 @@ class PaqueteSerializer(serializers.ModelSerializer):
         read_only=True,
         help_text="Descripción textual de la ubicación actual del paquete"
     )
+    direccion_envio_lat = serializers.FloatField(
+        read_only=True,
+        help_text="Latitud de la dirección de envío"
+    )
+    direccion_envio_lng = serializers.FloatField(
+        read_only=True,
+        help_text="Longitud de la dirección de envío"
+    )
 
     class Meta:
         model = Paquete
@@ -729,6 +737,7 @@ class PaqueteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("El RUT del destinatario es obligatorio.")
         if len(value) > 12:
             raise serializers.ValidationError("El RUT no puede superar los 12 caracteres.")
+        return value
 
     def validate_direccion_envio_texto(self, value):
         """
@@ -775,9 +784,8 @@ class PaqueteSerializer(serializers.ModelSerializer):
         """
         Crea un paquete y calcula automáticamente su ruta.
         
-        Después de crear el paquete, intenta calcular y guardar la ruta
-        desde el origen hasta la dirección de envío. Si ocurre un error
-        en el cálculo de la ruta, el paquete se crea de todas formas.
+        Primero intenta geocodificar la dirección, luego crea el paquete
+        y finalmente calcula la ruta completa.
         
         Args:
             validated_data: Datos validados del paquete
@@ -785,19 +793,43 @@ class PaqueteSerializer(serializers.ModelSerializer):
         Returns:
             Paquete: Instancia del paquete creado
         """
-        paquete = super().create(validated_data)
+        from maps.constants import UNIVERSIDAD_CONCEPCION_COORDS_TUPLE
         
-        # Calcular y guardar la ruta automáticamente
+        # Primero intentar geocodificar la dirección de envío
+        direccion_texto = validated_data.get('direccion_envio_texto', '')
+        coordenadas_calculadas = None
+        
+        if direccion_texto:
+            try:
+                from maps.utilities import obtener_coordenadas
+                coordenadas_calculadas = obtener_coordenadas(direccion_texto)
+            except Exception:
+                pass
+        
+        # Establecer coordenadas (geocodificadas o por defecto)
+        if coordenadas_calculadas:
+            validated_data['direccion_envio_lat'] = coordenadas_calculadas[0]
+            validated_data['direccion_envio_lng'] = coordenadas_calculadas[1]
+        else:
+            validated_data['direccion_envio_lat'] = UNIVERSIDAD_CONCEPCION_COORDS_TUPLE[0]
+            validated_data['direccion_envio_lng'] = UNIVERSIDAD_CONCEPCION_COORDS_TUPLE[1]
+        
+        # Crear y guardar el paquete
+        paquete = Paquete(**validated_data)
+        paquete.save()
+        
+        # Intentar calcular la ruta completa después de guardar el paquete
         try:
             from maps.utilities import calcular_y_guardar_ruta_paquete
             ruta, error = calcular_y_guardar_ruta_paquete(paquete)
             
-            if error:
-                # No fallar la creación del paquete por errores de ruta
-                pass
-                
+            if ruta and not error:
+                # Actualizar coordenadas si la ruta se calculó exitosamente
+                paquete.direccion_envio_lat = ruta.destino_lat
+                paquete.direccion_envio_lng = ruta.destino_lng
+                paquete.save()
         except Exception as e:
-            # No fallar la creación del paquete por errores de ruta
+            # Si falla el cálculo de ruta, mantener las coordenadas geocodificadas
             pass
         
         return paquete
@@ -807,8 +839,8 @@ class PaqueteSerializer(serializers.ModelSerializer):
         Actualiza un paquete y recalcula la ruta si la dirección cambió.
         
         Si la dirección de envío ha cambiado, recalcula automáticamente
-        la ruta. Si ocurre un error en el recálculo, la actualización
-        del paquete se completa de todas formas.
+        la ruta. Si ocurre un error en el recálculo, intenta geocodificar
+        la nueva dirección.
         
         Args:
             instance: Instancia actual del paquete
@@ -824,10 +856,25 @@ class PaqueteSerializer(serializers.ModelSerializer):
         if paquete.direccion_envio_texto != direccion_anterior:
             try:
                 from maps.utilities import calcular_y_guardar_ruta_paquete
-                calcular_y_guardar_ruta_paquete(paquete)
+                ruta, error = calcular_y_guardar_ruta_paquete(paquete)
+                
+                if ruta and not error:
+                    # Actualizar coordenadas si la ruta se calculó exitosamente
+                    paquete.direccion_envio_lat = ruta.destino_lat
+                    paquete.direccion_envio_lng = ruta.destino_lng
+                    paquete.save()
             except Exception:
-                # No fallar la actualización por errores de ruta
-                pass
+                # Si falla el cálculo de ruta, intentar geocodificar la nueva dirección
+                try:
+                    from maps.utilities import obtener_coordenadas
+                    coordenadas = obtener_coordenadas(paquete.direccion_envio_texto)
+                    if coordenadas:
+                        paquete.direccion_envio_lat = coordenadas[0]
+                        paquete.direccion_envio_lng = coordenadas[1]
+                        paquete.save()
+                except Exception:
+                    # Si todo falla, mantener las coordenadas actuales
+                    pass
         
         return paquete
 
