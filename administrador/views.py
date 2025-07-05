@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.template import Template, Context, loader
-from api.models import Paquete, Cliente, Usuario, Despachador, Conductor
+from api.models import Paquete, Cliente, Usuario, Despachador, Conductor,Ruta,Admin
 from api.serializers import UsuarioSerializer, PaqueteSerializer, ClienteSerializer
 from rest_framework.exceptions import ValidationError
 from django.contrib import messages
@@ -12,6 +12,14 @@ from geopy.exc import GeocoderTimedOut
 from api.serializers import PaqueteSerializer
 def inicio(request):
     return render(request,'administrador/inicio.html')
+
+def graficas(request):
+    rutas = Ruta.objects.all()
+    rutas_json = list(rutas.values('distancia_ida_km', 'duracion_ida_minutos'))
+    return render(request, 'administrador/graficas.html', {
+        'rutas': rutas,
+        'rutas_json': rutas_json
+    })
 
 def paquetes(request):
     paquetes = Paquete.objects.all()

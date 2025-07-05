@@ -20,7 +20,7 @@
         }
         
         aside {
-            background-color: #b4b4b4;
+            background-color: yellow;
             color: white;
             width: 160px;
             padding: 20px;
@@ -34,11 +34,11 @@
         aside nav a {
             display: block;
             padding: 10px;
-            color: white;
+            color: black;
             text-decoration: none;
+            font-weight: bold;
         }
         aside nav a.active {
-            background-color: rgba(134, 134, 134, 0.8); 
             font-weight: bold;
         }
         main {
@@ -139,6 +139,7 @@
             padding: 10px;
             margin-bottom: 16px;
         }
+        
     </style>
 </head>
 <body>    
@@ -147,6 +148,7 @@
             <a href="{% url 'inicio_administrador' %}" class="{% if request.path == '/administrador/inicio/' %}active{% endif %}"> Inicio </a>
             <a href="{% url 'paquetes_administrador' %}" class="{% if request.path == '/administrador/paquetes/' %}active{% endif %}"> Paquetes </a>
             <a href="{% url 'conductores_administrador' %}" class="{% if request.path == '/administrador/conductores/' %}active{% endif %}"> Conductores </a>
+            <a href="{% url 'graficas_administrador' %}" class ="{% if request.path == '/administrador/graficas/' %}active{% endif %}" >Tablas</a>
         </nav>
     </aside>
     <main>

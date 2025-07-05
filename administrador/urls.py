@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import inicio, paquetes, conductores, registrar_paquete, registrar_cliente, asignar_conductor, cambiar_estado_paquete,cambiar_direccion
+from .views import inicio, paquetes, conductores, registrar_paquete, registrar_cliente, asignar_conductor, cambiar_estado_paquete,cambiar_direccion,graficas
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
@@ -12,4 +12,5 @@ urlpatterns = [
     path('cambiar-estado/', cambiar_estado_paquete, name='cambiar_estado_paquete_administrador'),
     path('cambiar-direccion/', cambiar_direccion, name="cambiar_direccion_paquete"),
     path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('graficas/',graficas,name='graficas_administrador'),
 ]

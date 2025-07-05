@@ -1,0 +1,65 @@
+{% extends "administrador/template_base.html" %}
+
+{% block title %}
+Graficas
+{% endblock %}
+
+{% block content %}
+<style>
+    .contenido{
+        width: 40%;
+        margin: 0 auto;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+    canvas{
+        max-width: 100%;
+    }
+</style>
+<section class="contenido">
+    {% if rutas %}
+    {% for ruta in rutas %}
+        <h3>Ruta {{ forloop.counter }}</h3>
+        <canvas id="grafico-{{ forloop.counter }}" height="300" width="300"></canvas>
+    {% endfor %}
+    {% endif %}
+</section>
+{{ rutas_json|json_script:"rutas" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+    const rutas = JSON.parse(document.getElementById('rutas').textContent);
+    rutas.forEach((ruta, index) => {
+        console.log(ruta.distancia_ida_km)
+        const canvasId = `grafico-${index + 1}`;
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;  // seguridad por si falla
+        
+        const myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Distancia', 'Duración'],
+                datasets: [{
+                    label: `Ruta ${index + 1}`,
+                    data: [ruta.distancia_ida_km, ruta.duracion_ida_minutos],
+                    backgroundColor: ['#3388ff', '#ff8833'],
+                    borderWidth: 1.5
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+
+
+{% endblock %}
