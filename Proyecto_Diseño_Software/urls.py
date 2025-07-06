@@ -27,7 +27,7 @@ urlpatterns = [
     path('api/', include('api.urls')),  # Incluye las URLs de la API de la BD
     path('home/',include('home.urls')),
     path('conductor/', include('Conductor.urls')), # Incluye URLs de la página conductor
-    path('despachador/', include('despachador.urls')),  # Incluye URLs de la página despachador
+    path('despachador/', include('Despachador.urls')),  # Incluye URLs de la página despachador
     path('cliente/', include('Cliente.urls')), # Incluye URLs de la página cliente
-    path('administrador/',include('administrador.urls')),
+    path('administrador/',include('Administrador.urls')),
 ]
