@@ -20,6 +20,7 @@ Graficas
     }
 </style>
 <section class="contenido">
+    <button id = "boton">Cambiar tipo de grafico</button>
     {% if rutas %}
     {% for ruta in rutas %}
         <h3>Ruta {{ forloop.counter }}</h3>
@@ -31,8 +32,9 @@ Graficas
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
     const rutas = JSON.parse(document.getElementById('rutas').textContent);
+    const charts = [];
     rutas.forEach((ruta, index) => {
-        console.log(ruta.distancia_ida_km)
+        console.log(ruta.distancia_regreso_km)
         const canvasId = `grafico-${index + 1}`;
         const ctx = document.getElementById(canvasId);
         if (!ctx) return;  // seguridad por si falla
@@ -40,11 +42,11 @@ Graficas
         const myChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Distancia', 'Duración'],
+                labels: ['distancia de ida en km', 'distancia de regreso en km', 'distancia total en km'],
                 datasets: [{
                     label: `Ruta ${index + 1}`,
-                    data: [ruta.distancia_ida_km, ruta.duracion_ida_minutos],
-                    backgroundColor: ['#3388ff', '#ff8833'],
+                    data: [ruta.distancia_ida_km, ruta.distancia_regreso_km, ruta.distancia_total_km],
+                    backgroundColor: ['#3388ff', '#ff8833','#00FF00'],
                     borderWidth: 1.5
                 }]
             },
@@ -57,9 +59,39 @@ Graficas
                 }
             }
         });
+        charts.push(myChart);
+    });
+    const boton = document.getElementById("boton");
+    boton.addEventListener("click", () => {
+        charts.forEach((chart, index) => {
+            const data = chart.data;
+            const canvas = chart.canvas;
+            let tipo = chart.config.type;
+            if(tipo === 'bar'){
+                tipo = 'line'
+                }
+            else{
+                tipo = 'bar'
+            }
+            chart.destroy();
+
+            const newChart = new Chart(canvas, {
+                
+                type: tipo,
+                data: data,
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            charts[index] = newChart;
+        });
     });
 </script>
-
-
 
 {% endblock %}

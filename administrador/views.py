@@ -11,11 +11,28 @@ from maps.utilities import obtener_coordenadas
 from geopy.exc import GeocoderTimedOut
 from api.serializers import PaqueteSerializer
 def inicio(request):
-    return render(request,'administrador/inicio.html')
+    from datetime import date
+    from api.models import Paquete, Conductor
+    
+    # Obtener estadísticas
+    paquetes_en_bodega = Paquete.objects.filter(estado='En_Bodega').count()
+    paquetes_en_ruta = Paquete.objects.filter(estado='En_ruta').count()
+    conductores_disponibles = Conductor.objects.filter(estado='disponible').count()
+    
+    # Paquetes entregados hoy
+    paquetes_entregados = Paquete.objects.filter(estado='Entregado').count()
+    
+    context = {
+        'paquetes_en_bodega': paquetes_en_bodega,
+        'paquetes_en_ruta': paquetes_en_ruta,
+        'conductores_disponibles': conductores_disponibles,
+        'paquetes_entregados': paquetes_entregados,
+    }
+    return render(request,'administrador/inicio.html',context)
 
 def graficas(request):
     rutas = Ruta.objects.all()
-    rutas_json = list(rutas.values('distancia_ida_km', 'duracion_ida_minutos'))
+    rutas_json = list(rutas.values('distancia_ida_km','distancia_regreso_km','distancia_total_km'))
     return render(request, 'administrador/graficas.html', {
         'rutas': rutas,
         'rutas_json': rutas_json
@@ -104,7 +121,7 @@ def registrar_paquete(request):
             'rut_destinatario': request.POST.get('rut_destinatario'),
             'telefono_destinatario': request.POST.get('telefono_destinatario'),
             'cliente': request.POST.get('cliente_id'),
-            'despachador': Despachador.objects.get(usuario=request.user).pk,
+            'despachador': Despachador.objects.first().pk,
         }
         
         serializer = PaqueteSerializer(data=data)
