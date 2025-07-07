@@ -7,34 +7,38 @@
     Inicio
     {% endblock %}
     {% block content %}
-        <ul>
-            <li>Tabla con notificaciones recientes</li>
-            <li>Hora de la notificacion</li>
-            <li>Estado del pedido</li>
-            <li>Detall del pedido</li>
-        </ul>
+        <div class="content-section">
+            <h2>Notificaciones Recientes</h2>
+            <p>Aquí puedes ver el estado actual de tus pedidos y las actualizaciones más recientes.</p>
+            
+            <table class="notificaciones">
+                <thead>
+                <tr>
+                    <th>Hora</th>
+                    <th>Paquete</th>
+                    <th>Estado Anterior</th>
+                    <th>Estado Actual</th>
+                    <th>Detalle</th>
+                </tr>
+                </thead>
 
-    <table class = "notificaciones">
-        <thead>
-        <tr>
-            <th>Hora</th>
-            <th>paquete</th>
-            <th>Estado antiguo</th>
-            <th>Estado actual</th>
-            <th>Detalle</th>
-        </tr>
-        </thead>
-
-        <tbody>
-        {% for notificacion in notificaciones %}
-       <tr>
-            <td>{{ notificacion.fecha_envio }}</td>
-           <td>{{ notificacion.paquete }}</td>
-           <td>{{ notificacion.estado_antiguo }}</td>
-           <td>{{ notificacion.estado_nuevo }}</td>
-           <td>{{ notificacion.mensaje }}</td>
-       </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                <tbody>
+                {% for notificacion in notificaciones %}
+               <tr>
+                    <td>{{ notificacion.fecha_envio }}</td>
+                   <td>{{ notificacion.paquete }}</td>
+                   <td>{{ notificacion.estado_antiguo }}</td>
+                   <td>{{ notificacion.estado_nuevo }}</td>
+                   <td>{{ notificacion.mensaje }}</td>
+               </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: #666;">
+                        No hay notificaciones disponibles en este momento.
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% endblock %}

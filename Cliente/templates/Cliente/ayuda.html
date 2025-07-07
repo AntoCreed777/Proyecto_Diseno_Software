@@ -1,14 +1,75 @@
 {% extends "Cliente/navegacion/template_inicial.html" %}
 
-    {% block title %}Ayuda{% endblock %}
+  {% block title %}Ayuda{% endblock %}
 
-    {% block subtitle %}
-    Ayuda
-    {% endblock %}
+  {% block subtitle %}
+  Ayuda
+  {% endblock %}
+  
   {% block content %}
-  <h3>Seccion de ayuda para el cliente</h3>
-  <ul>
-    <li>Preguntas frecuentes</li>
-    <li>Contacto de ayuda</li>
-  </ul>
+  <div class="content-section">
+    <h2>Centro de Ayuda</h2>
+    <p>Encuentra respuestas a tus preguntas más frecuentes y obtén soporte técnico.</p>
+    
+    <div class="help-section">
+      <h3>Preguntas Frecuentes</h3>
+      
+      <div class="faq-item">
+        <h4>¿Cómo puedo rastrear mi paquete?</h4>
+        <p>Puedes ver el estado de todos tus paquetes en la sección "Mis Paquetes" del menú principal. Allí encontrarás información actualizada sobre el estado de entrega y ubicación actual.</p>
+      </div>
+      
+      <div class="faq-item">
+        <h4>¿Qué significan los diferentes estados de mi paquete?</h4>
+        <ul>
+          <li><strong>En bodega:</strong> Tu paquete está en nuestras instalaciones esperando ser asignado a un conductor.</li>
+          <li><strong>En ruta:</strong> Tu paquete está siendo transportado hacia su destino.</li>
+          <li><strong>Entregado:</strong> Tu paquete ha sido entregado exitosamente en la dirección de destino.</li>
+        </ul>
+      </div>
+      
+      <div class="faq-item">
+        <h4>¿Cómo recibo notificaciones sobre mi paquete?</h4>
+        <p>Las notificaciones aparecen automáticamente en la página de "Inicio" cada vez que hay un cambio en el estado de tus paquetes. También puedes verificar el estado actual en cualquier momento.</p>
+      </div>
+      
+      <div class="faq-item">
+        <h4>¿Qué hago si hay un problema con mi entrega?</h4>
+        <p>Si experimentas algún problema con tu entrega, puedes contactar a nuestro equipo de soporte usando la información de contacto que aparece más abajo.</p>
+      </div>
+    </div>
+    
+    <div class="help-section">
+      <h3>Contacto de Soporte</h3>
+      <div class="contact-info">
+        <div class="contact-item">
+          <strong>Teléfono de Soporte:</strong>
+          <p>+56 9 1234 5678</p>
+          <p><small>Lunes a Viernes: 8:00 AM - 6:00 PM</small></p>
+        </div>
+        
+        <div class="contact-item">
+          <strong>Email de Soporte:</strong>
+          <p>soporte@paqueteria.com</p>
+          <p><small>Respuesta en menos de 24 horas</small></p>
+        </div>
+        
+        <div class="contact-item">
+          <strong>Dirección de Oficinas:</strong>
+          <p>Universidad de Concepción</p>
+          <p>Concepción, Región del Biobío</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="help-section">
+      <h3>Horarios de Entrega</h3>
+      <p>Nuestros conductores realizan entregas en los siguientes horarios:</p>
+      <ul>
+        <li><strong>Lunes a Viernes:</strong> 9:00 AM - 5:00 PM</li>
+        <li><strong>Sábados:</strong> 9:00 AM - 1:00 PM</li>
+        <li><strong>Domingos y Festivos:</strong> No hay entregas</li>
+      </ul>
+    </div>
+  </div>
   {% endblock %}

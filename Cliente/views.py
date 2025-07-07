@@ -7,10 +7,10 @@ def inicio(request):
     paquetes = Paquete.objects.all()
     return render(request,'Cliente/inicio.html', context = {'notificaciones': notificaciones, 'paquetes':paquetes})
 
-def mis_pedidos(request):
+def mis_paquetes(request):
     paquetes = Paquete.objects.all()
 
-    return render(request, 'Cliente/mis_pedidos.html', context = {'paquetes':paquetes})
+    return render(request, 'Cliente/mis_paquetes.html', context = {'paquetes':paquetes})
 
 def ayuda(request):
 

@@ -1,0 +1,45 @@
+{% extends "Cliente/navegacion/template_inicial.html" %}
+
+    {% block title %}Mis Paquetes{% endblock %}
+
+    {% block subtitle %}
+    Mis Paquetes
+    {% endblock %}
+
+    {% block content %}
+        <div class="content-section">
+            <p>Aquí puedes ver todos tus paquetes y su estado actual de entrega.</p>
+            
+            <table class="paquetes">
+                <thead>
+                <tr>
+                    <th>Paquete</th>
+                    <th>Estado</th>
+                    <th>Remitente</th>
+                    <th>Destinatario</th>
+                    <th>Peso</th>
+                    <th>Dimensiones</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                {% for paquete in paquetes %}
+                <tr>
+                    <td>{{ paquete.id }}</td>
+                    <td>{%if paquete.estado == 'En_Bodega'%} En bodega {%elif paquete.estado == 'En_ruta'%} En ruta {%elif paquete.estado == 'Entregado'%} Entregado {%endif%}</td>
+                    <td>{{ paquete.cliente.usuario.username}}</td>
+                    <td>{{ paquete.nombre_destinatario }}</td>
+                    <td>{{ paquete.peso }} kg</td>
+                    <td>{{ paquete.largo }} x {{paquete.ancho}} x {{paquete.alto}} cm</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: #666;">
+                        No tienes paquetes registrados en este momento.
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endblock %}

@@ -27,8 +27,10 @@
         }
         main {
             flex: 1;
-            padding: 10px;
+            padding: 20px;
             background-color: white;
+            min-height: 100vh;
+            overflow-x: auto;
         }
         header {
             display: flex;
@@ -41,11 +43,55 @@
         }
         th, td {
             border: 1px solid #ccc;
-            padding: px;
+            padding: 8px;
             text-align: left;
         }
         th {
             background-color: #eee; /* Fondo gris para encabezados */
+        }
+        .notificaciones {
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .notificaciones th {
+            background-color: #666;
+            color: white;
+            font-weight: bold;
+        }
+        .notificaciones tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .notificaciones tbody tr:hover {
+            background-color: #f0f0f0;
+        }
+        .paquetes {
+            margin-top: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .paquetes th {
+            background-color: #666;
+            color: white;
+            font-weight: bold;
+        }
+        .paquetes tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .paquetes tbody tr:hover {
+            background-color: #f0f0f0;
+        }
+        .content-section {
+            margin-bottom: 30px;
+        }
+        .content-section h2 {
+            color: #555;
+            border-bottom: 2px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .content-section p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
         }
         .filter-box {
             display: flex;
@@ -55,6 +101,68 @@
         .filter-box input, .filter-box select {
             padding: 5px;
             width: 200px;
+        }
+        
+        .help-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #666;
+        }
+        .help-section h3 {
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .faq-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .faq-item h4 {
+            color: #444;
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .faq-item p, .faq-item ul {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+        .faq-item ul {
+            padding-left: 20px;
+        }
+        .faq-item li {
+            margin-bottom: 8px;
+        }
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .contact-item {
+            flex: 1;
+            min-width: 250px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .contact-item strong {
+            color: #555;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .contact-item p {
+            margin-bottom: 5px;
+        }
+        .contact-item small {
+            color: #888;
         }
 
         .contenedor{
@@ -70,25 +178,24 @@
         font-size: 2vh;
         }
     </style>
-
-    <title>
-        {% block title %} {% endblock %}
-    </title>
 </head>
 <body>
     <aside>
         <nav>
             <a href="{% url 'inicio_cliente' %}" class ="{%if request.path == '/cliente/inicio/'%} active{%endif%}"> Inicio </a>
-            <a href="{% url 'mis_pedidos' %}" class ="{%if request.path == '/cliente/mis_pedidos/'%} active{%endif%}"> Mis_Pedidos </a>
+            <a href="{% url 'mis_paquetes' %}" class ="{%if request.path == '/cliente/mis_paquetes/'%} active{%endif%}"> Mis Paquetes </a>
             <a href="{% url 'ayuda' %}" class ="{%if request.path == '/cliente/ayuda/'%} active{%endif%}"> Ayuda </a>
         </nav>
     </aside>
     <main>
         <header>
-            <h1>{% block subtitle %}{% endblock %}</h1>
+            <h1>{% block title %}Inicio{% endblock %}</h1>
             <div>
-                <span>{{user.username}}</span>
-                <button class = "contenedor">Cerrar sesión</button>
+                <span>{{ user.username }}</span>
+                <form method="post" action="{% url 'logout' %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Cerrar sesión</button>
+                </form>
             </div>
         </header>
     {% block content %}
