@@ -1,5 +1,5 @@
 <nav>
-    <a href="{% url 'conductor:inicio_conductor' %}" class="{% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">Inicio</a>
+    <a href="{% url 'conductor:inicio_conductor' %}" class="{% if request.resolver_match.url_name == 'inicio_conductor' %}active{% endif %}">Inicio</a>
     <a href="{% url 'conductor:paquetes' %}" class="{% if request.resolver_match.url_name == 'paquetes' %}active{% endif %}">Paquetes</a>
     <a href="{% url 'conductor:rendimiento' %}" class="{% if request.resolver_match.url_name == 'rendimiento' %}active{% endif %}">Rendimiento</a>
 </nav>

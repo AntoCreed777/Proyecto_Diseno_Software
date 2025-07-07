@@ -8,7 +8,7 @@
     <h1>Rendimiento</h1>
     <div class="stats-container">
         <div class="stat-card">
-            <h3>Entregas totales esta semana</h3>
+            <h3>Entregas totales</h3>
             <p class="stat-value">{{ entregas_totales }}</p>
         </div>
         
@@ -21,39 +21,35 @@
             <h3>Distancia total recorrida</h3>
             <p class="stat-value">{{ distancia_total }} km</p>
         </div>
-        
-        <div class="stat-card">
-            <h3>Día más productivo</h3>
-            <p class="stat-value">{{ dia_mas_productivo }}</p>
-        </div>
     </div>
     
     <hr>
     <!-- PARTE DE LAS TABLAS-->
-    <h2>Entregas diarias</h2>
-    <table class="deliveries-table">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Entregas realizadas</th>
-                <th>Tiempo total</th>
-                <th>Tiempo promedio de entrega</th>
-                <th>Distancia recorrida</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- FORMULA AUTOMATIZADA (falta saber donde encontrar los datos)-->
-            {% for entrega in entregas_diarias %}
-            <tr>
-                <td>{{ entrega.fecha }}</td>
-                <td>{{ entrega.cantidad }}</td>
-                <td>{{ entrega.tiempo_total }}</td>
-                <td>{{ entrega.tiempo_promedio }}</td>
-                <td>{{ entrega.distancia }} km</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h2>Entregas de hoy ({{ entregas_hoy.count }})</h2>
+<table class="deliveries-table">
+    <thead> 
+        <tr>
+            <th>ID Paquete</th>
+            <th>Fecha de entrega</th>
+            <th>Tiempo de entrega (min)</th>
+            <th>Distancia (km)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for paquete in entregas_hoy %}
+        <tr>
+            <td>{{ paquete.id }}</td>
+            <td>{{ paquete.fecha_entrega }}</td>
+            <td>{{ paquete.tiempo_entrega_min }}</td>
+            <td>{{ paquete.distancia_km }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4">No hay entregas hoy.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 </div>
 
 <style>
