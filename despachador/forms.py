@@ -82,6 +82,7 @@ class RegistroPaqueteForm(forms.ModelForm):
 
     def save(self, commit=True, despachador=None, skip_coordinates=False):
         paquete = super().save(commit=False)
+        paquete.estado = 'En_Bodega'
         
         # Procesar dimensiones
         dimensiones = self.cleaned_data['dimensiones']

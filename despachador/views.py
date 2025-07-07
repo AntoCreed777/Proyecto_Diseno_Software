@@ -194,7 +194,8 @@ def procesar_ubicacion_confirmada(request, form_data):
             del request.session['paquete_form_data']
             
             messages.success(request, 'Paquete registrado exitosamente con ubicación confirmada.')
-            return redirect('paquetes_despachador')
+            form = RegistroPaqueteForm()
+            return render(request, 'despachador/registrar_paquete.html', {'form': form})
         else:
             messages.error(request, 'Error en los datos del formulario.')
             return render(request, 'despachador/registrar_paquete.html', {'form': form})

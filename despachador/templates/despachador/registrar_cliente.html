@@ -38,6 +38,16 @@ Registrar Cliente
         </div>
 
         <div class="form-group">
+            <label for="{{ form.first_name.id_for_label }}">Nombre:</label>
+            {{ form.first_name }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.last_name.id_for_label }}">Apellidos:</label>
+            {{ form.last_name }}
+        </div>
+
+        <div class="form-group">
             <label for="{{ form.email.id_for_label }}">Correo electrónico:</label>
             {{ form.email }}
         </div>
