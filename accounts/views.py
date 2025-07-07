@@ -84,7 +84,7 @@ def registration(request):
           form = RegistroClienteForm()
 
      return render(request, 'registration.html', {'form': form})
-def notificar_cambio_estado_paquete(paquete):
+def notificar_cambio_estado_paquete(paquete, estado_antiguo):
     cliente = paquete.cliente
     usuario = cliente.usuario
     asunto = f"Actualización de estado de tu paquete #{paquete.id}"
@@ -104,7 +104,10 @@ def notificar_cambio_estado_paquete(paquete):
     )
     serializer = NotificacionSerializer(data={
         'mensaje': mensaje,
-        'cliente': cliente.id
+        'cliente': cliente.id,
+        'paquete': paquete.id,
+        'estado_antiguo': estado_antiguo,
+        'estado_nuevo': paquete.estado
     })
     if serializer.is_valid():
          serializer.save()

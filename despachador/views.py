@@ -262,7 +262,10 @@ def cambiar_estado_paquete(request):
         paquete_id = request.POST.get('paquete_id')
         paquete = Paquete.objects.get(id=paquete_id)
         nuevo_estado = request.POST.get('estado')
+        estado_antiguo = paquete.estado
+        print(f"estado_antiguo = {estado_antiguo}")
         paquete.estado = nuevo_estado
+        print(f"estado_nuevo = {nuevo_estado}")
         
         # Si el estado cambia a "Entregado", establecer la fecha de entrega
         if nuevo_estado == 'Entregado':
@@ -270,5 +273,5 @@ def cambiar_estado_paquete(request):
             paquete.fecha_entrega = date.today()
         
         paquete.save()
-        notificar_cambio_estado_paquete(paquete)
+        notificar_cambio_estado_paquete(paquete, estado_antiguo)
     return redirect('paquetes_despachador')

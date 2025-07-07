@@ -49,7 +49,7 @@ from maps.constants import UNIVERSIDAD_CONCEPCION, UNIVERSIDAD_CONCEPCION_COORDS
 #      destino_lat, destino_lng, fecha_inicio_ruta, fecha_fin_ruta, id_paquete)
 #   - FK: id_paquete -> paquete(id) [OneToOne]
 #
-# notificacion(@id, mensaje, fecha_envio, id_cliente, id_paquete)
+# notificacion(@id, mensaje, fecha_envio, estado_antiguo, estado_nuevo, id_cliente, id_paquete)
 #   - FK: id_cliente -> cliente(id)
 #   - FK: id_paquete -> paquete(id)
 #
@@ -465,6 +465,18 @@ class Notificacion(models.Model):
         blank=True, 
         related_name='notificaciones',
         help_text="Paquete relacionado con la notificación"
+    )
+    estado_antiguo = models.CharField(
+        max_length = 20,
+        null = True,
+        blank = True,
+        help_text = "Estado antiguo del paquete"
+    )
+    estado_nuevo = models.CharField(
+        max_length=20,
+        null=True,
+        blank=True,
+        help_text="Estado nuevo del paquete"
     )
 
     def __str__(self):
