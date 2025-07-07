@@ -59,6 +59,28 @@ Pedidos
                             conductor="{{ paquete.conductor.usuario.first_name }} {{ paquete.conductor.usuario.last_name }}">
                     Ver detalles
                     </button>
+                    
+                    <!-- Formulario para iniciar ruta -->
+                     {% if paquete.estado == 'En_Bodega' %}
+                    <form method="post" action="{% url 'conductor:actualizar_ruta' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="paquete_id" value="{{ paquete.id }}">
+                        <input type="hidden" name="accion" value="iniciar">
+                        <button type="submit" class="btn-iniciar-ruta" style="margin-top: 5px; background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Iniciar ruta</button>
+                    </form>
+                    {% endif %}
+                    
+                    <!-- Formulario para finalizar ruta -->
+                     {% if paquete.estado == 'En_ruta' %}
+                    <form method="post" action="{% url 'conductor:actualizar_ruta' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="paquete_id" value="{{ paquete.id }}">
+                        <input type="hidden" name="accion" value="finalizar">
+                        <button type="submit" class="btn-finalizar-ruta" style="margin-top: 5px; background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;"">Finalizar ruta</button>
+                    </form>
+                    {% endif %}
+                </td>
+
                 </td>
             </tr>
              {% endfor %}
@@ -85,7 +107,7 @@ Pedidos
                 <button type="button" id="cerrar-detalles">Cerrar</button>
             </div>
         </div>
-    </div>
+    </div> 
 </div>
 <!-- Modal para cambiar estado -->
 <div id="modal-cambiar-estado" class="modal-paquete">
@@ -132,6 +154,7 @@ document.querySelectorAll('.btn-ver-detalles').forEach(function(btn) {
     document.getElementById('modal-ver-detalles').style.display = 'block';
   };
 });
+
 document.getElementById('cerrar-detalles').onclick = function() {
   document.getElementById('modal-ver-detalles').style.display = 'none';
 };

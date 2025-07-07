@@ -1,18 +1,23 @@
-
 from django.shortcuts import render, redirect
-from api.models import Paquete, Cliente, Conductor, Ruta
-from datetime import datetime 
-from django.db.models import Sum
+from api.models import Paquete, Cliente, Conductor, Ruta, Notificacion, EstadoPaquete
+from datetime import datetime,date 
 from accounts.views import notificar_cambio_estado_paquete
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncDate
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 
 def inicio(request):
-    #conductor = Conductor.objects.get(usuario=request.user)             #DEPENDE DE ESTAR LOGEADO, ESTE DEBERÍA USARSE
-    conductor = getattr(request.user, 'conductor', None)#DEPENDE DE ESTAR LOGEADO, SOLO PARA VER LA INTERFAZ
-    paquetes = Paquete.objects.filter(conductor=conductor)#DEPENDE DE ESTAR LOGEADO
-
+    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
+        return redirect('login')
+    
+    conductor = request.user.conductor 
+    paquetes = Paquete.objects.filter(conductor=conductor)
+    
     id_paquete = request.GET.get('id')
     fecha = request.GET.get('fecha')
     estado = request.GET.get('estado')
@@ -24,36 +29,34 @@ def inicio(request):
     if estado:
         paquetes = paquetes.filter(estado=estado)
 
-    rutas_asignadas = Ruta.objects.filter(paquete__conductor=conductor).count()#DEPENDE DE ESTAR LOGEADO
-    paquetes_pendientes = paquetes.filter(estado='en_bodega').count()
-    paquetes_en_curso = paquetes.filter(estado='en_ruta').count()
-    paquetes_entregados = paquetes.filter(estado='entregado').count()
-    
+    paquetes_totales = Paquete.objects.filter(conductor=conductor)
+    rutas_asignadas = Ruta.objects.filter(paquete__conductor=conductor).distinct().count()
+    paquetes_pendientes = paquetes_totales.filter(estado='En_Bodega').count()
+    paquetes_en_curso = paquetes_totales.filter(estado='En_ruta').count()
+    paquetes_entregados = paquetes_totales.filter(estado='Entregado').count()
 
-    total_paquetes_asignados = paquetes.count()
+    total_paquetes_asignados = paquetes_totales.count()
     rendimiento = (paquetes_entregados/total_paquetes_asignados * 100) if total_paquetes_asignados > 0 else 0
-    clientes = Cliente.objects.select_related('usuario').all()
     
     return render(request, 'Conductor/inicio.html', {
-        'clientes': clientes,
         'paquetes': paquetes.order_by('-id'),
         'rutas_asignadas': rutas_asignadas,
         'paquetes_pendientes': paquetes_pendientes,
         'paquetes_en_curso': paquetes_en_curso,
         'paquetes_entregados': paquetes_entregados,
-        'rendimiento': round(rendimiento, 2),
+        'rendimiento': round(rendimiento, 2)
     })
 
 def paquetes(request):
-    #conductor = Conductor.objects.get(usuario=request.user)             #DEPENDE DE ESTAR LOGEADO, ESTE DEBERÍA USARSE
-    conductor = getattr(request.user, 'conductor', None)#DEPENDE DE ESTAR LOGEADO, SOLO PARA VER LA INTERFAZ
+    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
+        return redirect('login')
+    
+    conductor = request.user.conductor
     paquetes = Paquete.objects.filter(conductor=conductor)
     
     id_paquete = request.GET.get('id')
     fecha = request.GET.get('fecha')
     estado = request.GET.get('estado')
-    clientes = Cliente.objects.select_related('usuario').all()
-    conductores = Conductor.objects.select_related('usuario').all()
 
     if id_paquete:
         paquetes = paquetes.filter(id=id_paquete)
@@ -63,20 +66,54 @@ def paquetes(request):
         paquetes = paquetes.filter(estado=estado)
 
     return render(request, 'Conductor/paquetes.html', {
-        'clientes': clientes,
         'paquetes': paquetes.order_by('-id'),
-        'conductores':conductores,
     })
 
-def rendimiento(request):
-    #conductor = Conductor.objects.get(usuario=request.user)             #DEPENDE DE ESTAR LOGEADO, ESTE DEBERÍA USARSE
-    conductor = getattr(request.user, 'conductor', None)#DEPENDE DE ESTAR LOGEADO, SOLO PARA VER LA INTERFAZ
-    paquetes = Paquete.objects.filter(conductor=conductor)
+
+def actualizar_ruta(request):
+    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
+        return redirect('login')
     
+    if request.method == 'POST':
+        paquete_id = request.POST.get('paquete_id')
+        accion = request.POST.get('accion')
+        
+        try:
+            paquete = Paquete.objects.get(id=paquete_id, conductor=request.user.conductor)
+            ruta, created = Ruta.objects.get_or_create(paquete=paquete)
+            
+            if accion == 'iniciar':
+                ruta.fecha_inicio_ruta = datetime.now()
+                paquete.estado = 'En_ruta'
+                messages.success(request, f'Ruta para el paquete #{paquete_id} iniciada correctamente')
+            elif accion == 'finalizar':
+                ruta.fecha_fin_ruta = datetime.now()
+                paquete.estado = 'Entregado'
+                paquete.fecha_entrega = datetime.now()
+                messages.success(request, f'Ruta para el paquete #{paquete_id} finalizada correctamente')
+            
+            ruta.save()
+            paquete.save()
+            
+        except Paquete.DoesNotExist:
+            messages.error(request, 'Paquete no encontrado')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+    
+    return redirect('conductor:paquetes')
+
+def rendimiento(request):
+    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
+        return redirect('login')
+    
+    conductor = request.user.conductor
+
     id_paquete = request.GET.get('id')
     fecha = request.GET.get('fecha')
     estado = request.GET.get('estado')
+    hoy = date.today()
 
+    paquetes = Paquete.objects.filter(conductor=conductor)
     if id_paquete:
         paquetes = paquetes.filter(id=id_paquete)
     if fecha:
@@ -84,53 +121,75 @@ def rendimiento(request):
     if estado:
         paquetes = paquetes.filter(estado=estado)
 
-    entregas_totales = paquetes.filter(estado='entregado').count()
-    entregas = paquetes.filter(
-        estado='entregado',
-        fecha_entrega__isnull=False,
-        fecha_registro__isnull=False
-    ).values_list('fecha_registro', 'fecha_entrega')
-    diferencias = []
-    for registro, entrega in entregas:
-        #PARTE PARA CONVERTIR STRING A DATETIME(solo un if)
-        if isinstance(registro, str):
-            registro = datetime.strptime(registro, '%Y-%m-%d %H:%M:%S')
-        if isinstance(entrega, str):
-            entrega = datetime.strptime(entrega, '%Y-%m-%d %H:%M:%S')
-        delta = entrega-registro
-        diferencias.append(delta.total_seconds())
 
-    #parte para calcular el promedio y convertirlo a horas
-    if diferencias:
-        segundos_promedio = sum(diferencias)/len(diferencias)
-        min_promedios = round(segundos_promedio/60, 2)
+    entregas_totales = paquetes.filter(estado='Entregado').count()
+
+    distancia_total = Ruta.objects.filter(paquete__conductor=conductor).aggregate(
+        total=Sum('distancia_total_km')
+    )['total'] or 0
+
+
+    entregas_hoy = paquetes.filter(estado='Entregado', fecha_entrega__date=hoy)
+    for paquete in entregas_hoy:
+        if paquete.fecha_registro and paquete.fecha_entrega:
+            delta = paquete.fecha_entrega-paquete.fecha_registro
+            paquete.tiempo_entrega_min = round(delta.total_seconds() / 3600, 2)
+        else:
+            paquete.tiempo_entrega_min = 0
+        
+        try:
+            ruta = Ruta.objects.get(paquete=paquete)
+            paquete.distancia_km = round(ruta.distancia_total_km,2)
+        except Ruta.DoesNotExist:
+            paquete.distancia_km = 0
+
+    number=0
+    h_total=0
+    for paquete in entregas_hoy:
+        if paquete.tiempo_entrega_min:
+            h_total+=paquete.tiempo_entrega_min
+            number+=1
+        else:
+            None
+    
+    if number>0:
+        h_promedios = round(h_total / number, 2)
     else:
-        min_promedios = 0
-
-    distancia_total = Ruta.objects.filter(paquete__conductor=conductor).aggregate(total=Sum('distancia_km'))['total'] or 0
-    dias_entregas = {}
-    for paquete in paquetes.filter(estado='entregado'):
-        fecha = paquete.fecha_entrega.date()
-        dias_entregas[fecha] = dias_entregas.get(fecha, 0) + 1
-    dia_mas_productivo = max(dias_entregas, key=lambda x: dias_entregas[x]) if dias_entregas else None
-    clientes = Cliente.objects.select_related('usuario').all()
+        h_promedios=0
+    
 
     return render(request, 'Conductor/rendimiento.html', {
-        'clientes': clientes,
         'paquetes': paquetes.order_by('-id'),
         'entregas_totales': entregas_totales,
-        'tiempo_promedio': min_promedios,
+        'entregas_hoy': entregas_hoy,
+        'tiempo_promedio': h_promedios,
         'distancia_total': round(distancia_total, 2),
-        'dia_mas_productivo': dia_mas_productivo,
     })
 
 def cambiar_estado_paquete_conductor(request):
     if request.method == 'POST':
         paquete_id = request.POST.get('paquete_id')
-        paquete = Paquete.objects.get(id=paquete_id)
-        paquete.estado = request.POST.get('estado')
+        nuevo_estado = request.POST.get('estado')
+        
+        if not paquete_id or not nuevo_estado:
+            return redirect('conductor:paquetes')
+        
+        paquete = get_object_or_404(Paquete, id=paquete_id)
+        
+        if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
+            return redirect('conductor:paquetes')
+        
+        if paquete.conductor != request.user.conductor:
+            return redirect('conductor:paquetes')
+        
+        paquete.estado = nuevo_estado
+        
+        if nuevo_estado == 'Entregado':
+            paquete.fecha_entrega = datetime.now()
+        
         paquete.save()
-        notificar_cambio_estado_paquete(paquete)
+        notificar_cambio_estado_paquete(paquete, nuevo_estado)
+    
     return redirect('conductor:paquetes')
 
 def mapa(request):
@@ -139,10 +198,13 @@ def mapa(request):
     if not id_paquete:
         return redirect('conductor:paquetes')
 
-    # Verificar que el paquete existe
-    get_object_or_404(Paquete, id=id_paquete)
+    paquete = get_object_or_404(Paquete, id=id_paquete)
+    
+    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
+        return redirect('conductor:paquetes')
+    
+    if paquete.conductor != request.user.conductor:
+        return redirect('conductor:paquetes')
 
-    # Redirigir a la vista de mapas pasando solo el ID del paquete
     url = reverse('maps:map_paquete', kwargs={'paquete_id': id_paquete})
-
     return redirect(url)
