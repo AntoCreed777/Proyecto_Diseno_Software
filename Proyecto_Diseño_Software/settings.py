@@ -46,10 +46,10 @@ INSTALLED_APPS = [
     'api',
     'home',
     'Conductor',
-    'Despachador',
+    'despachador',
     'Cliente.apps.ClienteConfig',
     'captcha',
-    'Administrador',
+    'administrador',
 ]
 
 AUTH_USER_MODEL = 'api.Usuario'

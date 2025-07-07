@@ -467,13 +467,15 @@ class Notificacion(models.Model):
         help_text="Paquete relacionado con la notificación"
     )
     estado_antiguo = models.CharField(
-        max_length = 20,
+        max_length = 10,
+        choices=EstadoPaquete.choices,
         null = True,
         blank = True,
         help_text = "Estado antiguo del paquete"
     )
     estado_nuevo = models.CharField(
-        max_length=20,
+        max_length=10,
+        choices=EstadoPaquete.choices,
         null=True,
         blank=True,
         help_text="Estado nuevo del paquete"
