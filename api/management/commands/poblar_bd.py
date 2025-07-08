@@ -17,6 +17,8 @@ from django.core.management.base import BaseCommand
 from api.models import Usuario, Cliente, Conductor, Despachador, Admin, TiposRoles
 from django.db import transaction
 from phonenumber_field.phonenumber import PhoneNumber
+from django.contrib.auth.models import Group
+from api.exceptions import GroupNotConfiguredError
 
 class Command(BaseCommand):
     help = 'Poblar la base de datos con usuarios de prueba para cada rol del sistema'
@@ -40,6 +42,14 @@ class Command(BaseCommand):
                     usuario_cliente.set_password('cliente123')  # Hashea la contraseña
                     usuario_cliente.email_verified = True
                     usuario_cliente.save()
+                    
+                    # Asignar grupo correspondiente al rol
+                    try:
+                        grupo = Group.objects.get(name=TiposRoles.CLIENTE)
+                        usuario_cliente.groups.add(grupo)
+                    except Group.DoesNotExist:
+                        raise GroupNotConfiguredError(f"El grupo '{TiposRoles.CLIENTE}' no está configurado en la base de datos.")
+                    
                     cliente = Cliente.objects.create(usuario=usuario_cliente, direccion_hogar='Calle Falsa 123, Ciudad')
                     self.stdout.write(self.style.SUCCESS(f'Cliente creado: {usuario_cliente.username}'))
         except Exception as e:
@@ -62,6 +72,14 @@ class Command(BaseCommand):
                     usuario_despachador.set_password('despachador123')
                     usuario_despachador.email_verified = True
                     usuario_despachador.save()
+                    
+                    # Asignar grupo correspondiente al rol
+                    try:
+                        grupo = Group.objects.get(name=TiposRoles.DESPACHADOR)
+                        usuario_despachador.groups.add(grupo)
+                    except Group.DoesNotExist:
+                        raise GroupNotConfiguredError(f"El grupo '{TiposRoles.DESPACHADOR}' no está configurado en la base de datos.")
+                    
                     despachador = Despachador.objects.create(usuario=usuario_despachador)
                     self.stdout.write(self.style.SUCCESS(f'Despachador creado: {usuario_despachador.username}'))
         except Exception as e:
@@ -84,6 +102,14 @@ class Command(BaseCommand):
                     usuario_conductor.set_password('conductor123')
                     usuario_conductor.email_verified = True
                     usuario_conductor.save()
+                    
+                    # Asignar grupo correspondiente al rol
+                    try:
+                        grupo = Group.objects.get(name=TiposRoles.CONDUCTOR)
+                        usuario_conductor.groups.add(grupo)
+                    except Group.DoesNotExist:
+                        raise GroupNotConfiguredError(f"El grupo '{TiposRoles.CONDUCTOR}' no está configurado en la base de datos.")
+                    
                     conductor = Conductor.objects.create(usuario=usuario_conductor)
                     self.stdout.write(self.style.SUCCESS(f'Conductor creado: {usuario_conductor.username}'))
         except Exception as e:
@@ -106,6 +132,14 @@ class Command(BaseCommand):
                     )
                     usuario_admin.email_verified = True
                     usuario_admin.save()
+                    
+                    # Asignar grupo correspondiente al rol
+                    try:
+                        grupo = Group.objects.get(name=TiposRoles.ADMIN)
+                        usuario_admin.groups.add(grupo)
+                    except Group.DoesNotExist:
+                        raise GroupNotConfiguredError(f"El grupo '{TiposRoles.ADMIN}' no está configurado en la base de datos.")
+                    
                     admin = Admin.objects.create(usuario=usuario_admin, nivel_acceso=5)
                     self.stdout.write(self.style.SUCCESS(f'Admin creado: {usuario_admin.username}'))
         except Exception as e:

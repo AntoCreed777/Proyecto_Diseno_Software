@@ -1,20 +1,16 @@
 from django.shortcuts import render, redirect
-from api.models import Paquete, Cliente, Conductor, Ruta, Notificacion, EstadoPaquete
+from api.models import Paquete, Ruta, TiposRoles
 from datetime import datetime,date 
 from accounts.views import notificar_cambio_estado_paquete
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse
-from django.db.models import Count, Sum
-from django.db.models.functions import TruncDate
+from django.db.models import Sum
 from django.shortcuts import redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from api.groups_decorator import group_required
 
-
+@group_required(TiposRoles.CONDUCTOR)
 def inicio(request):
-    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
-        return redirect('login')
-    
     conductor = request.user.conductor 
     paquetes = Paquete.objects.filter(conductor=conductor)
     
@@ -47,10 +43,8 @@ def inicio(request):
         'rendimiento': round(rendimiento, 2)
     })
 
+@group_required(TiposRoles.CONDUCTOR)
 def paquetes(request):
-    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
-        return redirect('login')
-    
     conductor = request.user.conductor
     paquetes = Paquete.objects.filter(conductor=conductor)
     
@@ -69,11 +63,8 @@ def paquetes(request):
         'paquetes': paquetes.order_by('-id'),
     })
 
-
+@group_required(TiposRoles.CONDUCTOR)
 def actualizar_ruta(request):
-    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
-        return redirect('login')
-    
     if request.method == 'POST':
         paquete_id = request.POST.get('paquete_id')
         accion = request.POST.get('accion')
@@ -102,10 +93,8 @@ def actualizar_ruta(request):
     
     return redirect('conductor:paquetes')
 
+@group_required(TiposRoles.CONDUCTOR)
 def rendimiento(request):
-    if not request.user.is_authenticated or not hasattr(request.user, 'conductor'):
-        return redirect('login')
-    
     conductor = request.user.conductor
 
     id_paquete = request.GET.get('id')

@@ -1,15 +1,12 @@
-from django.http import HttpResponse
-from django.template import Template, Context
-from django.template import loader
 from django.shortcuts import render, redirect
-from api.models import Paquete, Cliente, Usuario, Despachador, Conductor
+from api.models import Paquete, Cliente, Despachador, Conductor, TiposRoles
 from django.contrib import messages
-from django.views.decorators.http import require_POST
 from accounts.views import notificar_cambio_estado_paquete
+from api.groups_decorator import group_required
 
+@group_required(TiposRoles.DESPACHADOR)
 def inicio(request):
     from datetime import date
-    from api.models import Paquete, Conductor
     
     # Obtener estadísticas
     paquetes_en_bodega = Paquete.objects.filter(estado='En_Bodega').count()
@@ -31,6 +28,7 @@ def inicio(request):
     
     return render(request, 'despachador/inicio.html', context)
 
+@group_required(TiposRoles.DESPACHADOR)
 def paquetes(request):
     paquetes = Paquete.objects.all()
     id_paquete = request.GET.get('id')
@@ -55,6 +53,7 @@ def paquetes(request):
         'conductores': conductores,
     })
 
+@group_required(TiposRoles.DESPACHADOR)
 def conductores(request):
     conductores = Conductor.objects.select_related('usuario', 'vehiculo').all()
     id_conductor = request.GET.get('id')
@@ -261,14 +260,18 @@ def cambiar_estado_paquete(request):
     if request.method == 'POST':
         paquete_id = request.POST.get('paquete_id')
         paquete = Paquete.objects.get(id=paquete_id)
-        nuevo_estado = request.POST.get('estado')
+        
+        if paquete.estado == request.POST.get('paquete_id'):
+            return redirect('paquetes_despachador')
+        
         estado_antiguo = paquete.estado
         print(f"estado_antiguo = {estado_antiguo}")
-        paquete.estado = nuevo_estado
-        print(f"estado_nuevo = {nuevo_estado}")
+        
+        paquete.estado = request.POST.get('estado')
+        print(f"estado_nuevo = {paquete.estado}")
         
         # Si el estado cambia a "Entregado", establecer la fecha de entrega
-        if nuevo_estado == 'Entregado':
+        if paquete.estado == 'Entregado':
             from datetime import date
             paquete.fecha_entrega = date.today()
         

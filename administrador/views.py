@@ -1,18 +1,13 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.template import Template, Context, loader
-from api.models import Paquete, Cliente, Usuario, Despachador, Conductor,Ruta,Admin
-from api.serializers import UsuarioSerializer, PaqueteSerializer, ClienteSerializer
-from rest_framework.exceptions import ValidationError
+from api.models import Paquete, Cliente, Despachador, Conductor, Ruta, TiposRoles
+from api.serializers import PaqueteSerializer
 from django.contrib import messages
-from django.views.decorators.http import require_POST
 from accounts.views import notificar_cambio_estado_paquete
 from maps.utilities import obtener_coordenadas
-from geopy.exc import GeocoderTimedOut
-from api.serializers import PaqueteSerializer
+from api.groups_decorator import group_required
+
+@group_required(TiposRoles.ADMIN)
 def inicio(request):
-    from datetime import date
-    from api.models import Paquete, Conductor
     
     # Obtener estadísticas
     paquetes_en_bodega = Paquete.objects.filter(estado='En_Bodega').count()
@@ -30,7 +25,9 @@ def inicio(request):
     }
     return render(request,'administrador/inicio.html',context)
 
+@group_required(TiposRoles.ADMIN)
 def graficas(request):
+   
     rutas = Ruta.objects.all()
     rutas_json = list(rutas.values('distancia_ida_km','distancia_regreso_km','distancia_total_km'))
     return render(request, 'administrador/graficas.html', {
@@ -38,6 +35,7 @@ def graficas(request):
         'rutas_json': rutas_json
     })
 
+@group_required(TiposRoles.ADMIN)
 def paquetes(request):
     paquetes = Paquete.objects.all()
     id_paquete = request.GET.get('id')
@@ -62,6 +60,7 @@ def paquetes(request):
         'conductores': conductores,
     })
 
+@group_required(TiposRoles.ADMIN)
 def conductores(request):
     conductores = Conductor.objects.select_related('usuario', 'vehiculo').all()
     id_conductor = request.GET.get('id')
@@ -172,9 +171,20 @@ def cambiar_estado_paquete(request):
     if request.method == 'POST':
         paquete_id = request.POST.get('paquete_id')
         paquete = Paquete.objects.get(id=paquete_id)
+        
+        if paquete.estado == request.POST.get('paquete_id'):
+            return redirect('paquetes_administrador')
+        
+        estado_antiguo = paquete.estado
         paquete.estado = request.POST.get('estado')
+        
+        # Si el estado cambia a "Entregado", establecer la fecha de entrega
+        if paquete.estado == 'Entregado':
+            from datetime import date
+            paquete.fecha_entrega = date.today()
+        
         paquete.save()
-        notificar_cambio_estado_paquete(paquete)
+        notificar_cambio_estado_paquete(paquete, estado_antiguo)
     return redirect('paquetes_administrador')
 
 def cambiar_direccion(request):
